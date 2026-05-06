@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>GRIDRAVE</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    --bg: #08000f;
+    --primary: #ff00ff;
+    --accent: #00eeff;
+    --warn: #ffee00;
+    --danger: #ff1133;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  body {
+    background: var(--bg);
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    margin: 0;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    overscroll-behavior: none;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  .screen { display: none; width: 100vw; min-height: 100dvh; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; }
+  .screen.active { display: flex; }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px);
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  .glow-p { text-shadow: 0 0 8px var(--primary), 0 0 24px var(--primary); }
+  .glow-a { text-shadow: 0 0 8px var(--accent), 0 0 24px var(--accent); }
+  .glow-w { text-shadow: 0 0 8px var(--warn), 0 0 24px var(--warn); }
+  .glow-d { text-shadow: 0 0 8px var(--danger), 0 0 24px var(--danger); }
+
+  #grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    width: min(88vw, 370px);
+    margin: 0 auto;
+  }
+  .pad {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    cursor: pointer;
+    position: relative;
+    background: #0e0016;
+    border: 2px solid #1a0026;
+    transition: border-color 0.1s;
+  }
+  .pad.active {
+    border-color: var(--pad-color);
+    box-shadow: 0 0 14px var(--pad-color), inset 0 0 18px rgba(255,255,255,0.04);
+  }
+  .pad.danger {
+    border-color: var(--danger);
+    box-shadow: 0 0 18px var(--danger);
+    animation: dpulse 0.35s ease-in-out infinite alternate;
+  }
+  @keyframes dpulse {
+    from { box-shadow: 0 0 8px var(--danger); }
+    to   { box-shadow: 0 0 28px var(--danger), 0 0 48px rgba(255,17,51,0.4); }
+  }
+  .pad.hit { animation: hitanim 0.14s ease-out forwards; }
+  .pad.miss { animation: missanim 0.22s ease-out forwards; }
+  @keyframes hitanim {
+    0%   { transform: scale(0.88); }
+    100% { transform: scale(1); }
+  }
+  @keyframes missanim {
+    0%   { background: rgba(255,17,51,0.35); }
+    100% { background: #0e0016; }
+  }
+
+  #drop-overlay {
+    position: fixed; inset: 0; pointer-events: none; z-index: 900;
+    opacity: 0; transition: opacity 0.4s;
+  }
+  #drop-overlay.on {
+    opacity: 1;
+    animation: dropbg 0.6s ease-in-out infinite alternate;
+  }
+  @keyframes dropbg {
+    from { background: radial-gradient(ellipse at center, rgba(255,0,255,0.07) 0%, transparent 70%); }
+    to   { background: radial-gradient(ellipse at center, rgba(0,238,255,0.09) 0%, transparent 70%); }
+  }
+
+  #drop-banner {
+    position: fixed; top: 12%; left: 50%; transform: translateX(-50%);
+    z-index: 950; display: none;
+    font-size: clamp(1.2rem, 5vw, 1.8rem); font-weight: bold; letter-spacing: 0.25em;
+    color: var(--warn); text-shadow: 0 0 20px var(--warn), 0 0 50px var(--warn);
+    animation: bannerin 0.25s ease-out;
+    white-space: nowrap;
+  }
+  @keyframes bannerin {
+    from { transform: translateX(-50%) scale(1.6); opacity: 0; }
+    to   { transform: translateX(-50%) scale(1);   opacity: 1; }
+  }
+
+  #count-in {
+    position: fixed; inset: 0; z-index: 980;
+    display: none; align-items: center; justify-content: center; pointer-events: none;
+  }
+  #count-in.on { display: flex; }
+  #count-num {
+    font-size: clamp(4rem, 20vw, 7rem); font-weight: bold;
+    color: var(--primary); text-shadow: 0 0 40px var(--primary), 0 0 80px rgba(0,238,255,0.4);
+    animation: countpop 0.12s ease-out;
+  }
+  @keyframes countpop {
+    from { transform: scale(1.9); opacity: 0.3; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+
+  #hud { width: min(88vw, 370px); }
+
+  .btn {
+    background: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    padding: 0.6rem 1.8rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.95rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.18s;
+    box-shadow: 0 0 8px rgba(255,0,255,0.25);
+  }
+  .btn:hover, .btn:active { background: var(--primary); color: #000; box-shadow: 0 0 22px var(--primary); }
+  .btn-a { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 8px rgba(0,238,255,0.25); }
+  .btn-a:hover, .btn-a:active { background: var(--accent); color: #000; box-shadow: 0 0 22px var(--accent); }
+
+  .pip { display: inline-block; width: 13px; height: 13px; border-radius: 50%; margin: 0 3px; background: var(--primary); box-shadow: 0 0 8px var(--primary); }
+  .pip.dead { background: #2a1a2a; box-shadow: none; }
+
+  #combo-track { width: 100%; height: 4px; background: #1a0026; border-radius: 2px; overflow: hidden; }
+  #combo-fill  { height: 100%; width: 0%; background: var(--warn); box-shadow: 0 0 6px var(--warn); transition: width 0.18s; }
+
+  .how-scroll { max-height: 58vh; overflow-y: auto; text-align: left; font-size: 0.82rem; line-height: 1.75; color: #bbb; }
+  .how-scroll h3 { color: var(--primary); text-shadow: 0 0 8px var(--primary); margin: 0.9rem 0 0.2rem; font-size: 0.85rem; letter-spacing: 0.1em; }
+
+  .rec-row { display: flex; justify-content: space-between; border-bottom: 1px solid #150022; padding: 0.38rem 0; font-size: 0.85rem; }
+  .rec-lbl { color: #666; }
+  .rec-val { color: var(--accent); text-shadow: 0 0 6px var(--accent); font-weight: bold; }
+
+  .note-item { border-left: 2px solid var(--primary); padding-left: 0.75rem; margin-bottom: 0.8rem; font-size: 0.82rem; color: #bbb; }
+  .note-ver  { color: var(--primary); font-weight: bold; font-size: 0.82rem; }
+  .note-date { font-size: 0.68rem; color: #444; margin-bottom: 0.2rem; }
+
+  #beat-dot {
+    display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+    background: var(--primary); box-shadow: 0 0 8px var(--primary);
+    opacity: 0.3; transition: transform 0.06s, opacity 0.06s;
+  }
+  #beat-dot.on { transform: scale(2); opacity: 1; }
+
+  .footer { font-size: 0.62rem; color: #2a1a2a; text-align: center; position: fixed; bottom: 0.4rem; left: 0; right: 0; letter-spacing: 0.06em; }
+</style>
+</head>
+<body>
+
+<div id="drop-overlay"></div>
+<div id="drop-banner">⚡ BEAT DROP ⚡</div>
+<div id="count-in"><span id="count-num"></span></div>
+
+<!-- MENU -->
+<div id="s-menu" class="screen active">
+  <div class="text-center mb-1 select-none">
+    <div class="font-bold glow-p tracking-widest" style="font-size:clamp(3rem,16vw,5rem);line-height:1">GRID</div>
+    <div class="font-bold glow-a tracking-widest" style="font-size:clamp(3rem,16vw,5rem);line-height:1">RAVE</div>
+  </div>
+  <div class="text-xs glow-w tracking-widest mb-8 text-center">TAP THE GRID · FEEL THE BEAT</div>
+  <div class="flex flex-col gap-3 items-center w-full max-w-xs">
+    <button class="btn w-full" onclick="startGame()">PLAY</button>
+    <button class="btn btn-a w-full" onclick="showScreen('s-how')">HOW TO PLAY</button>
+    <button class="btn w-full" onclick="showScreen('s-rec')">RECORDS</button>
+    <button class="btn btn-a w-full" onclick="showScreen('s-notes')">PATCH NOTES</button>
+  </div>
+</div>
+
+<!-- HOW TO PLAY -->
+<div id="s-how" class="screen">
+  <div class="text-xl font-bold glow-p mb-3 tracking-widest">HOW TO PLAY</div>
+  <div class="how-scroll w-full max-w-sm px-1">
+    <h3>THE GRID</h3>
+    <p>A 4×4 grid of pads lights up in time to the beat. Tap lit pads before they expire to score. Miss a lit pad — lose a life.</p>
+    <h3>DANGER PADS</h3>
+    <p>Red glowing pads are traps. Do NOT tap them. Tap a danger pad and you lose a life. Let them expire on their own — nothing happens.</p>
+    <h3>COMBO MULTIPLIER</h3>
+    <p>Hit pads consecutively to build your multiplier (×1 → ×5). Miss or tap danger and it resets to ×1.</p>
+    <h3>SCORING</h3>
+    <p>Each hit = 10 pts × your current multiplier. Max combo hit = 50 pts.</p>
+    <h3>LEVELS</h3>
+    <p>Every 10 hits the BPM rises and pads expire faster. There is no ceiling — survive as long as possible.</p>
+    <h3>⚡ BEAT DROP</h3>
+    <p>Every 16 bars the Beat Drop fires for 4 seconds — locked to the BPM. No life penalty during the drop — tap everything and score freely.</p>
+    <h3>LIVES</h3>
+    <p>3 lives. All gone — game over.</p>
+  </div>
+  <button class="btn mt-5" onclick="showScreen('s-menu')">BACK</button>
+</div>
+
+<!-- RECORDS -->
+<div id="s-rec" class="screen">
+  <div class="text-xl font-bold glow-a mb-4 tracking-widest">RECORDS</div>
+  <div id="rec-body" class="w-full max-w-xs"></div>
+  <button class="btn btn-a mt-6" onclick="showScreen('s-menu')">BACK</button>
+</div>
+
+<!-- PATCH NOTES -->
+<div id="s-notes" class="screen">
+  <div class="text-xl font-bold glow-p mb-4 tracking-widest">PATCH NOTES</div>
+  <div class="w-full max-w-sm px-1" style="max-height:65vh;overflow-y:auto;">
+    <div class="note-item">
+      <div class="note-ver">v0.0.01</div>
+      <div class="note-date">2026-05-06</div>
+      <div>GRIDRAVE launches. 4×4 rave grid, BPM-driven beat loop, danger pads, combo multiplier ×1–×5, Beat Drop every 30s, full Web Audio EDM engine.</div>
+    </div>
+  </div>
+  <button class="btn mt-5" onclick="showScreen('s-menu')">BACK</button>
+</div>
+
+<!-- GAME -->
+<div id="s-game" class="screen" style="padding:0.4rem;gap:0;">
+
+  <!-- HUD TOP -->
+  <div id="hud" class="mb-2">
+    <div class="flex justify-between items-end mb-1">
+      <div>
+        <div class="text-xs tracking-widest" style="color:#444">SCORE</div>
+        <div id="score-val" class="font-bold glow-p" style="font-size:1.6rem;line-height:1">0</div>
+      </div>
+      <div class="text-center flex flex-col items-center">
+        <span id="beat-dot"></span>
+        <div id="bpm-val" class="text-xs mt-1" style="color:#444">90 BPM</div>
+      </div>
+      <div class="text-right">
+        <div class="text-xs tracking-widest mb-1" style="color:#444">LIVES</div>
+        <div id="lives-val"></div>
+      </div>
+    </div>
+    <div class="flex justify-between items-center mb-1">
+      <div class="text-xs" style="color:var(--warn)">COMBO <span id="combo-val" class="font-bold">×1</span></div>
+      <div class="text-xs" style="color:#444">LVL <span id="level-val" class="font-bold text-white">1</span></div>
+      <div id="drop-label" class="text-xs font-bold glow-w" style="min-width:60px;text-align:right"></div>
+    </div>
+    <div id="combo-track"><div id="combo-fill"></div></div>
+  </div>
+
+  <!-- GRID -->
+  <div id="grid"></div>
+</div>
+
+<!-- RESULT -->
+<div id="s-result" class="screen">
+  <div id="res-title" class="font-bold glow-d mb-1 tracking-widest" style="font-size:1.6rem">GAME OVER</div>
+  <div id="res-sub" class="text-xs glow-w mb-5 tracking-widest"></div>
+  <div id="res-body" class="w-full max-w-xs mb-5"></div>
+  <div class="flex flex-col gap-3 w-full max-w-xs">
+    <button class="btn w-full" onclick="startGame()">PLAY AGAIN</button>
+    <button class="btn btn-a w-full" onclick="showScreen('s-menu')">MENU</button>
+  </div>
+</div>
+
+<div class="footer">GRIDRAVE v0.0.01 &nbsp;·&nbsp; TACTICON STUDIOS</div>
+
+<script>
+// ── CONFIG ───────────────────────────────────────────────
+const STORAGE_KEY   = 'GR_stats';
+(function(){if(localStorage.getItem('WIPE_PLAYER_HISTORY')){localStorage.removeItem(STORAGE_KEY);localStorage.removeItem('WIPE_PLAYER_HISTORY');}})();
+const PAD_COLORS    = ['#ff00ff','#00eeff','#ffee00','#00ff88','#ff6600','#cc33ff','#ff3399','#33ffcc'];
+const DANGER_COLOR  = '#ff1133';
+const DANGER_CHANCE = 0.12;
+const MAX_ACTIVE    = 5;
+const BASE_BPM      = 90;
+const MAX_BPM       = 160;
+const BPM_PER_LEVEL = 8;
+const HITS_PER_LVL  = 10;
+const DROP_DUR      = 4000;
+const DORIAN        = [261.63, 293.66, 311.13, 349.23, 392.00, 440.00, 466.16, 523.25];
+
+// ── STATE ────────────────────────────────────────────────
+let actx = null;
+let pads = [];
+let score, lives, combo, level, hits, bestCombo;
+let running = false, dropping = false;
+let beatIv = null, dropEndTo = null;
+let t0 = 0, beatTick = 0, beatCount = 0;
+
+// ── AUDIO ────────────────────────────────────────────────
+function audio() {
+  if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function osc(freq, type, vol, dur, start) {
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = type; o.frequency.value = freq;
+  o.connect(g); g.connect(actx.destination);
+  const t = actx.currentTime + (start || 0);
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.start(t); o.stop(t + dur + 0.01);
+}
+
+function playKick() {
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.connect(g); g.connect(actx.destination);
+  o.frequency.setValueAtTime(140, actx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(40, actx.currentTime + 0.12);
+  g.gain.setValueAtTime(0.6, actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.15);
+  o.start(); o.stop(actx.currentTime + 0.16);
+}
+
+function playHat() {
+  const buf = actx.createBuffer(1, actx.sampleRate * 0.05, actx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  const src = actx.createBufferSource(), g = actx.createGain(), f = actx.createBiquadFilter();
+  f.type = 'highpass'; f.frequency.value = 7500;
+  src.buffer = buf; src.connect(f); f.connect(g); g.connect(actx.destination);
+  g.gain.setValueAtTime(0.18, actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.05);
+  src.start(); src.stop(actx.currentTime + 0.06);
+}
+
+function playPadHit() {
+  const freq = DORIAN[Math.floor(Math.random() * DORIAN.length)];
+  osc(freq, 'sine', 0.35, 0.28);
+  osc(freq * 2, 'sine', 0.12, 0.18);
+}
+
+function playMiss() {
+  osc(200, 'sawtooth', 0.28, 0.18);
+  setTimeout(() => osc(150, 'sawtooth', 0.2, 0.15), 60);
+}
+
+function playDanger() {
+  osc(90, 'square', 0.45, 0.22);
+}
+
+function playDrop() {
+  for (let i = 0; i < 4; i++) {
+    const f = [55, 70, 90, 110][i];
+    osc(f, 'sine', 0.5, 0.7, i * 0.07);
+  }
+  // swell noise
+  const buf = actx.createBuffer(1, actx.sampleRate * 0.5, actx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (i / d.length);
+  const src = actx.createBufferSource(), g = actx.createGain(), f = actx.createBiquadFilter();
+  f.type = 'bandpass'; f.frequency.value = 400;
+  src.buffer = buf; src.connect(f); f.connect(g); g.connect(actx.destination);
+  g.gain.setValueAtTime(0.3, actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.5);
+  src.start(); src.stop(actx.currentTime + 0.55);
+}
+
+function playGameOver() {
+  [440, 370, 311, 261].forEach((f, i) => osc(f, 'sawtooth', 0.28, 0.22, i * 0.14));
+}
+
+// ── STORAGE ──────────────────────────────────────────────
+function loadStats() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defStats(); }
+  catch { return defStats(); }
+}
+function defStats() { return { hi: 0, plays: 0, bestTime: 0, bestCombo: 0, totalHits: 0 }; }
+function saveStats(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+
+// ── SCREENS ──────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 's-rec') renderRecords();
+}
+
+// ── GRID BUILD ───────────────────────────────────────────
+function buildGrid() {
+  const g = document.getElementById('grid');
+  g.innerHTML = '';
+  pads = [];
+  for (let i = 0; i < 16; i++) {
+    const el = document.createElement('div');
+    el.className = 'pad';
+    el.addEventListener('pointerdown', e => { e.preventDefault(); tapPad(i); });
+    g.appendChild(el);
+    pads.push({ el, state: 'idle', expiry: 0 });
+  }
+}
+
+// ── BPM HELPERS ──────────────────────────────────────────
+function bpm()      { return Math.min(BASE_BPM + (level - 1) * BPM_PER_LEVEL, MAX_BPM); }
+function beatMs()   { return Math.round(60000 / bpm()); }
+function padLife()  { return beatMs() * 2; }
+
+// ── GAME START ───────────────────────────────────────────
+function startGame() {
+  audio();
+  score = 0; lives = 3; combo = 1; level = 1; hits = 0; bestCombo = 1;
+  running = true; dropping = false; beatTick = 0; beatCount = 0;
+  t0 = Date.now();
+
+  clearInterval(beatIv); clearTimeout(dropEndTo);
+  document.getElementById('drop-overlay').classList.remove('on');
+  document.getElementById('drop-banner').style.display = 'none';
+
+  buildGrid();
+  showScreen('s-game');
+  hud();
+  countIn();
+}
+
+// ── COUNT-IN ─────────────────────────────────────────────
+function countIn() {
+  const ms = beatMs();
+  const overlay = document.getElementById('count-in');
+  const numEl = document.getElementById('count-num');
+  overlay.classList.add('on');
+  let c = 0;
+  function tick() {
+    c++;
+    numEl.textContent = c;
+    numEl.style.animation = 'none';
+    void numEl.offsetWidth;
+    numEl.style.animation = '';
+    playKick();
+    pulseDot();
+    if (c < 4) {
+      setTimeout(tick, ms);
+    } else {
+      setTimeout(() => {
+        overlay.classList.remove('on');
+        startLoop();
+      }, ms);
+    }
+  }
+  setTimeout(tick, ms);
+}
+
+// ── BEAT LOOP ────────────────────────────────────────────
+function startLoop() {
+  clearInterval(beatIv);
+  const half = beatMs() / 2;
+  beatIv = setInterval(() => {
+    if (!running) return;
+    beatTick++;
+    if (beatTick % 2 === 1) {
+      // on-beat
+      beatCount++;
+      playKick();
+      pulseDot();
+      expireCheck();
+      if (beatCount > 1) spawn();
+      if (!dropping && beatCount % 64 === 0) startDrop();
+    } else {
+      playHat();
+      if (level >= 4 && beatCount > 1 && Math.random() < 0.3) spawn();
+    }
+  }, half);
+}
+
+function pulseDot() {
+  const d = document.getElementById('beat-dot');
+  d.classList.add('on');
+  setTimeout(() => d.classList.remove('on'), 70);
+}
+
+function spawn() {
+  if (!running) return;
+  const idle = pads.map((p,i) => p.state==='idle' ? i : -1).filter(i => i >= 0);
+  const active = pads.filter(p => p.state !== 'idle').length;
+  if (active >= MAX_ACTIVE || idle.length === 0) return;
+  const n = Math.min(dropping ? 2 : 1, MAX_ACTIVE - active, idle.length);
+  shuffle(idle);
+  for (let k = 0; k < n; k++) activatePad(idle[k]);
+}
+
+function activatePad(idx) {
+  const p = pads[idx];
+  const danger = !dropping && Math.random() < DANGER_CHANCE;
+  p.state = danger ? 'danger' : 'active';
+  p.expiry = Date.now() + padLife();
+  if (danger) {
+    p.el.style.setProperty('--pad-color', DANGER_COLOR);
+    p.el.style.background = 'rgba(255,17,51,0.12)';
+    p.el.className = 'pad danger';
+  } else {
+    const c = PAD_COLORS[Math.floor(Math.random() * PAD_COLORS.length)];
+    p.el.style.setProperty('--pad-color', c);
+    p.el.style.background = hexRgba(c, 0.15);
+    p.el.className = 'pad active';
+  }
+}
+
+function deactivate(idx) {
+  const p = pads[idx];
+  p.state = 'idle';
+  p.el.style.background = '';
+  p.el.className = 'pad';
+}
+
+function expireCheck() {
+  const now = Date.now();
+  pads.forEach((p, i) => {
+    if (p.state === 'active' && now >= p.expiry) {
+      if (!dropping) { loseLife(); playMiss(); breakCombo(); }
+      p.el.classList.add('miss');
+      setTimeout(() => deactivate(i), 220);
+    } else if (p.state === 'danger' && now >= p.expiry) {
+      deactivate(i);
+    }
+  });
+}
+
+// ── TAP ──────────────────────────────────────────────────
+function tapPad(idx) {
+  if (!running) return;
+  const p = pads[idx];
+  if (p.state === 'idle') return;
+
+  if (p.state === 'danger') {
+    if (!dropping) { playDanger(); loseLife(); breakCombo(); }
+    p.el.classList.add('miss');
+    setTimeout(() => deactivate(idx), 220);
+    return;
+  }
+
+  // Good
+  const pts = 10 * combo;
+  score += pts;
+  hits++;
+  bestCombo = Math.max(bestCombo, combo);
+  playPadHit();
+
+  if (combo < 5) combo++;
+  updateCombo();
+
+  if (hits % HITS_PER_LVL === 0) { level++; startLoop(); }
+
+  p.el.classList.add('hit');
+  setTimeout(() => deactivate(idx), 150);
+  hud();
+}
+
+// ── COMBO ────────────────────────────────────────────────
+function updateCombo() {
+  document.getElementById('combo-val').textContent = '×' + combo;
+  document.getElementById('combo-fill').style.width = ((combo-1)/4*100) + '%';
+}
+function breakCombo() { combo = 1; updateCombo(); hud(); }
+
+// ── LIVES ────────────────────────────────────────────────
+function loseLife() {
+  if (!running) return;
+  lives = Math.max(0, lives - 1);
+  hud();
+  if (lives <= 0) endGame();
+}
+
+// ── BEAT DROP ────────────────────────────────────────────
+function startDrop() {
+  if (!running) return;
+  dropping = true;
+  playDrop();
+  document.getElementById('drop-overlay').classList.add('on');
+  document.getElementById('drop-banner').style.display = 'block';
+  document.getElementById('drop-label').textContent = '⚡ DROP';
+  clearTimeout(dropEndTo);
+  dropEndTo = setTimeout(endDrop, DROP_DUR);
+}
+function endDrop() {
+  dropping = false;
+  document.getElementById('drop-overlay').classList.remove('on');
+  document.getElementById('drop-banner').style.display = 'none';
+  document.getElementById('drop-label').textContent = '';
+}
+
+// ── HUD ──────────────────────────────────────────────────
+function hud() {
+  document.getElementById('score-val').textContent = score;
+  document.getElementById('level-val').textContent = level;
+  document.getElementById('bpm-val').textContent   = bpm() + ' BPM';
+  document.getElementById('combo-val').textContent = '×' + combo;
+  const lv = document.getElementById('lives-val');
+  lv.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const pip = document.createElement('span');
+    pip.className = 'pip' + (i >= lives ? ' dead' : '');
+    lv.appendChild(pip);
+  }
+}
+
+// ── END ──────────────────────────────────────────────────
+function endGame() {
+  running = false;
+  clearInterval(beatIv); clearTimeout(dropEndTo);
+  document.getElementById('drop-overlay').classList.remove('on');
+  document.getElementById('drop-banner').style.display = 'none';
+  playGameOver();
+
+  const elapsed = Math.round((Date.now() - t0) / 1000);
+  const st = loadStats();
+  const newHi = score > st.hi;
+  st.hi = Math.max(st.hi, score);
+  st.plays++;
+  st.bestTime  = Math.max(st.bestTime, elapsed);
+  st.bestCombo = Math.max(st.bestCombo, bestCombo);
+  st.totalHits += hits;
+  saveStats(st);
+
+  document.getElementById('res-title').textContent  = newHi ? 'NEW HIGH SCORE!' : 'GAME OVER';
+  document.getElementById('res-title').className    = newHi ? 'font-bold glow-w mb-1 tracking-widest' : 'font-bold glow-d mb-1 tracking-widest';
+  document.getElementById('res-title').style.fontSize = '1.6rem';
+  document.getElementById('res-sub').textContent    = newHi ? 'RAVE HARDER, GO FURTHER' : 'FEEL THE BEAT, TRY AGAIN';
+
+  document.getElementById('res-body').innerHTML = `
+    <div class="rec-row"><span class="rec-lbl">SCORE</span><span class="rec-val">${score}</span></div>
+    <div class="rec-row"><span class="rec-lbl">BEST COMBO</span><span class="rec-val">×${bestCombo}</span></div>
+    <div class="rec-row"><span class="rec-lbl">LEVEL REACHED</span><span class="rec-val">${level}</span></div>
+    <div class="rec-row"><span class="rec-lbl">TOTAL HITS</span><span class="rec-val">${hits}</span></div>
+    <div class="rec-row"><span class="rec-lbl">TIME SURVIVED</span><span class="rec-val">${elapsed}s</span></div>
+    <div class="rec-row"><span class="rec-lbl">ALL-TIME HIGH</span><span class="rec-val">${st.hi}</span></div>
+  `;
+  showScreen('s-result');
+}
+
+// ── RECORDS SCREEN ───────────────────────────────────────
+function renderRecords() {
+  const s = loadStats();
+  document.getElementById('rec-body').innerHTML = `
+    <div class="rec-row"><span class="rec-lbl">HIGH SCORE</span><span class="rec-val">${s.hi}</span></div>
+    <div class="rec-row"><span class="rec-lbl">BEST COMBO</span><span class="rec-val">×${s.bestCombo}</span></div>
+    <div class="rec-row"><span class="rec-lbl">BEST TIME</span><span class="rec-val">${s.bestTime}s</span></div>
+    <div class="rec-row"><span class="rec-lbl">TOTAL HITS</span><span class="rec-val">${s.totalHits}</span></div>
+    <div class="rec-row"><span class="rec-lbl">GAMES PLAYED</span><span class="rec-val">${s.plays}</span></div>
+  `;
+}
+
+// ── UTILS ────────────────────────────────────────────────
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+}
+function hexRgba(hex, a) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+renderRecords();
+</script>
+</body>
+</html>
