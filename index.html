@@ -240,6 +240,11 @@
   <div class="text-xl font-bold glow-p mb-4 tracking-widest">PATCH NOTES</div>
   <div class="w-full max-w-sm px-1" style="max-height:65vh;overflow-y:auto;">
     <div class="note-item">
+      <div class="note-ver">v0.0.05</div>
+      <div class="note-date">2026-05-07</div>
+      <div>Count-in beats now anchored to absolute time — all 4 beats fire at equal intervals, no drift. Level-up BPM change has a 5-beat grace period so it can't fire during count-in runoff.</div>
+    </div>
+    <div class="note-item">
       <div class="note-ver">v0.0.04</div>
       <div class="note-date">2026-05-07</div>
       <div>Beat timing overhauled: count-in now locks to game BPM, beat loop uses absolute-time scheduler for rock-solid 4/4 throughout. Danger pads now show a geometric diamond centre.</div>
@@ -305,7 +310,7 @@
   </div>
 </div>
 
-<div class="footer">GRIDRAVE v0.0.04 &nbsp;·&nbsp; TACTICON STUDIOS</div>
+<div class="footer">GRIDRAVE v0.0.05 &nbsp;·&nbsp; TACTICON STUDIOS</div>
 
 <script>
 // ── CONFIG ───────────────────────────────────────────────
@@ -473,13 +478,16 @@ function countIn() {
   const numEl = document.getElementById('count-num');
   overlay.classList.add('on');
 
-  // pre-light starting tile from beat 1; expiry covers full count-in + padLife so beat 1 of game is tap time
+  // anchor all timing to t1 = "beat 1 fires exactly 1 beat from now"
+  const t1 = Date.now() + ms;
+
+  // pre-light starting tile; expiry anchored to t1 so it survives the full count-in
   const idle = pads.map((p, i) => p.state === 'idle' ? i : -1).filter(i => i >= 0);
   shuffle(idle);
   const sp = pads[idle[0]];
   const col = PAD_COLORS[Math.floor(Math.random() * PAD_COLORS.length)];
   sp.state = 'active';
-  sp.expiry = Date.now() + padLife() + 4 * ms;
+  sp.expiry = t1 + padLife() + 4 * ms;
   sp.el.style.setProperty('--pad-color', col);
   sp.el.style.background = hexRgba(col, 0.15);
   sp.el.className = 'pad active';
@@ -494,16 +502,18 @@ function countIn() {
     playClick();
     pulseDot();
     if (c < 4) {
-      setTimeout(tick, ms);
+      // each beat scheduled from t1, not chained from previous tick end
+      setTimeout(tick, Math.max(0, (t1 + c * ms) - Date.now()));
     } else {
-      nextBeatAbsTime = Date.now() + ms;
+      nextBeatAbsTime = t1 + 4 * ms;
       setTimeout(() => {
         overlay.classList.remove('on');
         startLoop();
       }, Math.round(ms / 2));
     }
   }
-  tick();
+  // first beat fires exactly at t1
+  setTimeout(tick, Math.max(0, t1 - Date.now()));
 }
 
 // ── BEAT LOOP ────────────────────────────────────────────
@@ -611,7 +621,7 @@ function tapPad(idx) {
   if (combo < 5) combo++;
   updateCombo();
 
-  if (hits % HITS_PER_LVL === 0) { level++; }
+  if (beatCount > 5 && hits % HITS_PER_LVL === 0) { level++; }
 
   p.el.classList.add('hit');
   setTimeout(() => deactivate(idx), 150);
