@@ -87,6 +87,15 @@
     from { box-shadow: 0 0 8px var(--danger); }
     to   { box-shadow: 0 0 28px var(--danger), 0 0 48px rgba(255,17,51,0.4); }
   }
+  .pad.pending {
+    border-color: var(--pad-color);
+    box-shadow: 0 0 6px var(--pad-color);
+    animation: ppulse 0.5s ease-in-out infinite alternate;
+  }
+  @keyframes ppulse {
+    from { opacity: 0.22; }
+    to   { opacity: 0.55; }
+  }
   .pad.hit { animation: hitanim 0.14s ease-out forwards; }
   .pad.miss { animation: missanim 0.22s ease-out forwards; }
   @keyframes hitanim {
@@ -240,6 +249,11 @@
   <div class="text-xl font-bold glow-p mb-4 tracking-widest">PATCH NOTES</div>
   <div class="w-full max-w-sm px-1" style="max-height:65vh;overflow-y:auto;">
     <div class="note-item">
+      <div class="note-ver">v0.0.06</div>
+      <div class="note-date">2026-05-07</div>
+      <div>Pads now preview 1 beat early — dim pulse shows which square is coming next before it goes fully active. Not tappable during preview.</div>
+    </div>
+    <div class="note-item">
       <div class="note-ver">v0.0.05</div>
       <div class="note-date">2026-05-07</div>
       <div>Count-in beats now anchored to absolute time — all 4 beats fire at equal intervals, no drift. Level-up BPM change has a 5-beat grace period so it can't fire during count-in runoff.</div>
@@ -310,7 +324,7 @@
   </div>
 </div>
 
-<div class="footer">GRIDRAVE v0.0.05 &nbsp;·&nbsp; TACTICON STUDIOS</div>
+<div class="footer">GRIDRAVE v0.0.06 &nbsp;·&nbsp; TACTICON STUDIOS</div>
 
 <script>
 // ── CONFIG ───────────────────────────────────────────────
@@ -558,7 +572,31 @@ function spawn() {
   if (active >= MAX_ACTIVE || idle.length === 0) return;
   const n = Math.min(dropping ? 2 : 1, MAX_ACTIVE - active, idle.length);
   shuffle(idle);
-  for (let k = 0; k < n; k++) activatePad(idle[k]);
+  for (let k = 0; k < n; k++) previewPad(idle[k]);
+}
+
+function previewPad(idx) {
+  const p = pads[idx];
+  const danger = !dropping && Math.random() < DANGER_CHANCE;
+  const col = danger ? DANGER_COLOR : PAD_COLORS[Math.floor(Math.random() * PAD_COLORS.length)];
+  p.state = 'pending';
+  p.pendingDanger = danger;
+  p.el.style.setProperty('--pad-color', col);
+  p.el.style.background = '';
+  p.el.className = 'pad pending';
+  const delay = Math.max(0, nextBeatAbsTime - Date.now());
+  setTimeout(() => {
+    if (!running || p.state !== 'pending') return;
+    p.state = danger ? 'danger' : 'active';
+    p.expiry = Date.now() + padLife();
+    if (danger) {
+      p.el.style.background = 'rgba(255,17,51,0.12)';
+      p.el.className = 'pad danger';
+    } else {
+      p.el.style.background = hexRgba(col, 0.15);
+      p.el.className = 'pad active';
+    }
+  }, delay);
 }
 
 function activatePad(idx) {
@@ -602,7 +640,7 @@ function expireCheck() {
 function tapPad(idx) {
   if (!running) return;
   const p = pads[idx];
-  if (p.state === 'idle') return;
+  if (p.state === 'idle' || p.state === 'pending') return;
 
   if (p.state === 'danger') {
     if (!dropping) { playDanger(); loseLife(); breakCombo(); }
