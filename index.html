@@ -87,14 +87,16 @@
     from { box-shadow: 0 0 8px var(--danger); }
     to   { box-shadow: 0 0 28px var(--danger), 0 0 48px rgba(255,17,51,0.4); }
   }
-  .pad.pending {
-    border-color: var(--pad-color);
-    box-shadow: 0 0 6px var(--pad-color);
-    animation: ppulse 0.5s ease-in-out infinite alternate;
-  }
-  @keyframes ppulse {
-    from { opacity: 0.22; }
-    to   { opacity: 0.55; }
+  .pad-dot {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 28%; height: 28%;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    background: var(--pad-color);
+    box-shadow: 0 0 8px var(--pad-color);
+    opacity: 0.85;
   }
   .pad.hit { animation: hitanim 0.14s ease-out forwards; }
   .pad.miss { animation: missanim 0.22s ease-out forwards; }
@@ -206,7 +208,7 @@
     <div class="font-bold glow-p tracking-widest" style="font-size:clamp(3rem,16vw,5rem);line-height:1">GRID</div>
     <div class="font-bold glow-a tracking-widest" style="font-size:clamp(3rem,16vw,5rem);line-height:1">RAVE</div>
   </div>
-  <div class="text-xs glow-w tracking-widest mb-8 text-center">TAP THE GRID · FEEL THE BEAT</div>
+  <div class="text-xs glow-w tracking-widest mb-8 text-center">FEEL THE BEAT · TAP THE GRID</div>
   <div class="flex flex-col gap-3 items-center w-full max-w-xs">
     <button class="btn w-full" onclick="startGame()">PLAY</button>
     <button class="btn btn-a w-full" onclick="showScreen('s-how')">HOW TO PLAY</button>
@@ -248,6 +250,11 @@
 <div id="s-notes" class="screen">
   <div class="text-xl font-bold glow-p mb-4 tracking-widest">PATCH NOTES</div>
   <div class="w-full max-w-sm px-1" style="max-height:65vh;overflow-y:auto;">
+    <div class="note-item">
+      <div class="note-ver">v0.0.08</div>
+      <div class="note-date">2026-05-07</div>
+      <div>Count-in runs 1 2 3 4 clean — first pad activates on beat 5. Pads now show a small coloured dot one beat before they fully activate.</div>
+    </div>
     <div class="note-item">
       <div class="note-ver">v0.0.06</div>
       <div class="note-date">2026-05-07</div>
@@ -324,7 +331,7 @@
   </div>
 </div>
 
-<div class="footer">GRIDRAVE v0.0.06 &nbsp;·&nbsp; TACTICON STUDIOS</div>
+<div class="footer">GRIDRAVE v0.0.08 &nbsp;·&nbsp; TACTICON STUDIOS</div>
 
 <script>
 // ── CONFIG ───────────────────────────────────────────────
@@ -491,20 +498,10 @@ function countIn() {
   const overlay = document.getElementById('count-in');
   const numEl = document.getElementById('count-num');
   overlay.classList.add('on');
+  numEl.textContent = '';
 
   // anchor all timing to t1 = "beat 1 fires exactly 1 beat from now"
   const t1 = Date.now() + ms;
-
-  // pre-light starting tile; expiry anchored to t1 so it survives the full count-in
-  const idle = pads.map((p, i) => p.state === 'idle' ? i : -1).filter(i => i >= 0);
-  shuffle(idle);
-  const sp = pads[idle[0]];
-  const col = PAD_COLORS[Math.floor(Math.random() * PAD_COLORS.length)];
-  sp.state = 'active';
-  sp.expiry = t1 + padLife() + 4 * ms;
-  sp.el.style.setProperty('--pad-color', col);
-  sp.el.style.background = hexRgba(col, 0.15);
-  sp.el.className = 'pad active';
 
   let c = 0;
   function tick() {
@@ -519,7 +516,11 @@ function countIn() {
       // each beat scheduled from t1, not chained from previous tick end
       setTimeout(tick, Math.max(0, (t1 + c * ms) - Date.now()));
     } else {
+      // set nextBeatAbsTime before previewPad so the delay calculates correctly
       nextBeatAbsTime = t1 + 4 * ms;
+      const idleNow = pads.map((p, i) => p.state === 'idle' ? i : -1).filter(i => i >= 0);
+      shuffle(idleNow);
+      if (idleNow.length > 0) previewPad(idleNow[0]);
       setTimeout(() => {
         overlay.classList.remove('on');
         startLoop();
@@ -548,7 +549,7 @@ function onBeat() {
   playKick();
   pulseDot();
   expireCheck();
-  if (beatCount > 1) spawn();
+  spawn();
   if (!dropping && beatCount % 64 === 0) startDrop();
   const halfMs = Math.round(beatMs() / 2);
   setTimeout(() => {
@@ -580,13 +581,14 @@ function previewPad(idx) {
   const danger = !dropping && Math.random() < DANGER_CHANCE;
   const col = danger ? DANGER_COLOR : PAD_COLORS[Math.floor(Math.random() * PAD_COLORS.length)];
   p.state = 'pending';
-  p.pendingDanger = danger;
   p.el.style.setProperty('--pad-color', col);
-  p.el.style.background = '';
-  p.el.className = 'pad pending';
+  const dot = document.createElement('div');
+  dot.className = 'pad-dot';
+  p.el.appendChild(dot);
   const delay = Math.max(0, nextBeatAbsTime - Date.now());
   setTimeout(() => {
     if (!running || p.state !== 'pending') return;
+    dot.remove();
     p.state = danger ? 'danger' : 'active';
     p.expiry = Date.now() + padLife();
     if (danger) {
@@ -621,6 +623,8 @@ function deactivate(idx) {
   p.state = 'idle';
   p.el.style.background = '';
   p.el.className = 'pad';
+  const dot = p.el.querySelector('.pad-dot');
+  if (dot) dot.remove();
 }
 
 function expireCheck() {
