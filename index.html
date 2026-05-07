@@ -194,6 +194,46 @@
   #beat-dot.on { transform: scale(2); opacity: 1; }
 
   .footer { font-size: 0.62rem; color: #2a1a2a; text-align: center; position: fixed; bottom: 0.4rem; left: 0; right: 0; letter-spacing: 0.06em; }
+
+  .track-row {
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.35);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .track-row.selected {
+    background: rgba(255,255,255,0.04);
+    box-shadow: 0 0 14px currentColor;
+  }
+  .track-meta { text-align: left; line-height: 1.2; }
+  .track-artist { font-size: 0.62rem; opacity: 0.65; letter-spacing: 0.18em; }
+  .track-title  { font-size: 1.05rem; font-weight: bold; letter-spacing: 0.12em; margin: 0.1rem 0; }
+  .track-style  { font-size: 0.6rem; opacity: 0.55; letter-spacing: 0.22em; }
+  .track-check  { font-size: 1.3rem; opacity: 0.85; }
+
+  #np-banner {
+    position: fixed; top: 30%; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.78);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 0.9rem 1.6rem;
+    text-align: center; letter-spacing: 0.14em;
+    z-index: 970;
+    opacity: 0;
+    transition: opacity 0.45s;
+    pointer-events: none;
+    display: none;
+    min-width: 220px;
+  }
+  #np-banner.on { display: block; opacity: 1; }
+  .np-artist { font-size: 0.7rem; opacity: 0.75; letter-spacing: 0.2em; }
+  .np-title  { font-size: 1.45rem; font-weight: bold; letter-spacing: 0.14em; margin: 0.15rem 0; text-shadow: 0 0 16px currentColor; }
+  .np-style  { font-size: 0.6rem; opacity: 0.55; letter-spacing: 0.22em; }
 </style>
 </head>
 <body>
@@ -201,6 +241,7 @@
 <div id="drop-overlay"></div>
 <div id="drop-banner">⚡ BEAT DROP ⚡</div>
 <div id="count-in"><span id="count-num"></span></div>
+<div id="np-banner"></div>
 
 <!-- MENU -->
 <div id="s-menu" class="screen active">
@@ -211,10 +252,18 @@
   <div class="text-xs glow-w tracking-widest mb-8 text-center">FEEL THE BEAT · TAP THE GRID</div>
   <div class="flex flex-col gap-3 items-center w-full max-w-xs">
     <button class="btn w-full" onclick="startGame()">PLAY</button>
-    <button class="btn btn-a w-full" onclick="showScreen('s-how')">HOW TO PLAY</button>
-    <button class="btn w-full" onclick="showScreen('s-rec')">GAME HISTORY</button>
-    <button class="btn btn-a w-full" onclick="showScreen('s-notes')">PATCH NOTES</button>
+    <button class="btn btn-a w-full" onclick="showScreen('s-track')">TRACK SELECT</button>
+    <button class="btn w-full" onclick="showScreen('s-how')">HOW TO PLAY</button>
+    <button class="btn btn-a w-full" onclick="showScreen('s-rec')">GAME HISTORY</button>
+    <button class="btn w-full" onclick="showScreen('s-notes')">PATCH NOTES</button>
   </div>
+</div>
+
+<!-- TRACK SELECT -->
+<div id="s-track" class="screen">
+  <div class="text-xl font-bold glow-p mb-3 tracking-widest">TRACK</div>
+  <div id="track-list" class="w-full max-w-sm flex flex-col gap-2 px-1" style="max-height:65vh;overflow-y:auto"></div>
+  <button class="btn mt-5" onclick="showScreen('s-menu')">BACK</button>
 </div>
 
 <!-- HOW TO PLAY -->
@@ -250,6 +299,11 @@
 <div id="s-notes" class="screen">
   <div class="text-xl font-bold glow-p mb-4 tracking-widest">PATCH NOTES</div>
   <div class="w-full max-w-sm px-1" style="max-height:65vh;overflow-y:auto;">
+    <div class="note-item">
+      <div class="note-ver">v0.0.10</div>
+      <div class="note-date">2026-05-07</div>
+      <div>Full music engine overhaul. Five original EDM tracks added: HELIOS (NXVØS) — big-room, SUBTERRANEAN (KILO ZERO) — melodic dubstep, NEON HEART (RUBY OKTANE) — synthwave, TRENCH (VOID SECTOR) — driving techno, SUNDIAL (AURA-9) — progressive house. Each has its own drum kit, bassline, lead synth and 32-bar phrase structure (intro → verse → build → drop → break → drop). Track Select menu added. Now-playing banner on game start.</div>
+    </div>
     <div class="note-item">
       <div class="note-ver">v0.0.09</div>
       <div class="note-date">2026-05-07</div>
@@ -336,7 +390,7 @@
   </div>
 </div>
 
-<div class="footer">GRIDRAVE v0.0.09 &nbsp;·&nbsp; TACTICON STUDIOS</div>
+<div class="footer">GRIDRAVE v0.0.10 &nbsp;·&nbsp; TACTICON STUDIOS</div>
 
 <script>
 // ── CONFIG ───────────────────────────────────────────────
@@ -351,7 +405,6 @@ const MAX_BPM       = 160;
 const BPM_PER_LEVEL = 4;
 const HITS_PER_LVL  = 10;
 const DROP_DUR      = 4000;
-const DORIAN        = [261.63, 293.66, 311.13, 349.23, 392.00, 440.00, 466.16, 523.25];
 
 // ── STATE ────────────────────────────────────────────────
 let actx = null;
@@ -361,89 +414,462 @@ let running = false, dropping = false;
 let beatIv = null, dropEndTo = null;
 let t0 = 0, beatCount = 0, nextBeatAbsTime = 0;
 
-// ── AUDIO ────────────────────────────────────────────────
+// ── AUDIO ENGINE ─────────────────────────────────────────
+let masterBus = null, drumBus = null, bassBus = null, leadBus = null, fxBus = null;
+
 function audio() {
-  if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+  if (!actx) {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    initBus();
+  }
 }
 
-function osc(freq, type, vol, dur, start) {
-  const o = actx.createOscillator(), g = actx.createGain();
-  o.type = type; o.frequency.value = freq;
-  o.connect(g); g.connect(actx.destination);
-  const t = actx.currentTime + (start || 0);
-  g.gain.setValueAtTime(vol, t);
-  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-  o.start(t); o.stop(t + dur + 0.01);
+function initBus() {
+  masterBus = actx.createGain();
+  masterBus.gain.value = 0.55;
+  const comp = actx.createDynamicsCompressor();
+  comp.threshold.value = -8; comp.knee.value = 6; comp.ratio.value = 6;
+  comp.attack.value = 0.003; comp.release.value = 0.15;
+  masterBus.connect(comp); comp.connect(actx.destination);
+  drumBus = actx.createGain(); drumBus.gain.value = 1.0;  drumBus.connect(masterBus);
+  bassBus = actx.createGain(); bassBus.gain.value = 0.85; bassBus.connect(masterBus);
+  leadBus = actx.createGain(); leadBus.gain.value = 0.7;  leadBus.connect(masterBus);
+  fxBus   = actx.createGain(); fxBus.gain.value   = 0.7;  fxBus.connect(masterBus);
 }
 
-function playKick() {
-  const o = actx.createOscillator(), g = actx.createGain();
-  o.connect(g); g.connect(actx.destination);
-  o.frequency.setValueAtTime(140, actx.currentTime);
-  o.frequency.exponentialRampToValueAtTime(40, actx.currentTime + 0.12);
-  g.gain.setValueAtTime(0.6, actx.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.15);
-  o.start(); o.stop(actx.currentTime + 0.16);
-}
-
-function playHat() {
-  const buf = actx.createBuffer(1, actx.sampleRate * 0.05, actx.sampleRate);
+function noiseBuf(durSec) {
+  const len = Math.max(1, Math.floor(actx.sampleRate * durSec));
+  const buf = actx.createBuffer(1, len, actx.sampleRate);
   const d = buf.getChannelData(0);
-  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-  const src = actx.createBufferSource(), g = actx.createGain(), f = actx.createBiquadFilter();
-  f.type = 'highpass'; f.frequency.value = 7500;
-  src.buffer = buf; src.connect(f); f.connect(g); g.connect(actx.destination);
-  g.gain.setValueAtTime(0.18, actx.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.05);
-  src.start(); src.stop(actx.currentTime + 0.06);
+  for (let i = 0; i < len; i++) d[i] = Math.random()*2 - 1;
+  return buf;
 }
 
+// ── DRUM / SYNTH PRIMITIVES ──
+// All take 'when' (Web Audio time) for sample-accurate scheduling.
+function K(when, p) {
+  const o = p||{}, dest = o.dest || drumBus;
+  const f = o.f||140, drop = o.drop||40, vol = o.vol==null?0.9:o.vol;
+  const dur = o.dur||0.18, click = o.click||0;
+  const osc = actx.createOscillator(), g = actx.createGain();
+  osc.frequency.setValueAtTime(f, when);
+  osc.frequency.exponentialRampToValueAtTime(Math.max(20,drop), when + dur);
+  g.gain.setValueAtTime(vol, when);
+  g.gain.exponentialRampToValueAtTime(0.001, when + dur);
+  osc.connect(g); g.connect(dest);
+  osc.start(when); osc.stop(when + dur + 0.05);
+  if (click) {
+    const c = actx.createOscillator(), cg = actx.createGain();
+    c.type='square'; c.frequency.value = 1800;
+    cg.gain.setValueAtTime(click, when);
+    cg.gain.exponentialRampToValueAtTime(0.001, when + 0.012);
+    c.connect(cg); cg.connect(dest);
+    c.start(when); c.stop(when + 0.02);
+  }
+}
+
+function S(when, p) {
+  const o = p||{}, dest = o.dest || drumBus;
+  const tone = o.tone||200, vol = o.vol==null?0.45:o.vol, dur = o.dur||0.12, hp = o.hp||1400;
+  const osc = actx.createOscillator(), og = actx.createGain();
+  osc.type='triangle'; osc.frequency.setValueAtTime(tone, when);
+  osc.frequency.exponentialRampToValueAtTime(tone*0.4, when + 0.05);
+  og.gain.setValueAtTime(vol*0.5, when);
+  og.gain.exponentialRampToValueAtTime(0.001, when + 0.06);
+  osc.connect(og); og.connect(dest);
+  osc.start(when); osc.stop(when + 0.07);
+  const src = actx.createBufferSource(), g = actx.createGain(), f = actx.createBiquadFilter();
+  src.buffer = noiseBuf(0.18);
+  f.type='highpass'; f.frequency.value = hp;
+  src.connect(f); f.connect(g); g.connect(dest);
+  g.gain.setValueAtTime(vol*0.85, when);
+  g.gain.exponentialRampToValueAtTime(0.001, when + dur);
+  src.start(when); src.stop(when + dur + 0.02);
+}
+
+function H(when, p) {
+  const o = p||{}, dest = o.dest || drumBus;
+  const vol = o.vol==null?0.16:o.vol, hp = o.hp||8500, open = o.open||0;
+  const D = open ? 0.22 : (o.dur||0.04);
+  const src = actx.createBufferSource(), g = actx.createGain(), f = actx.createBiquadFilter();
+  src.buffer = noiseBuf(0.25);
+  f.type='highpass'; f.frequency.value = hp;
+  src.connect(f); f.connect(g); g.connect(dest);
+  g.gain.setValueAtTime(vol, when);
+  g.gain.exponentialRampToValueAtTime(0.001, when + D);
+  src.start(when); src.stop(when + D + 0.02);
+}
+
+function CL(when, p) {
+  const o = p||{}, dest = o.dest || drumBus, vol = o.vol==null?0.32:o.vol;
+  const offsets = [0, 0.008, 0.02];
+  for (const off of offsets) {
+    const src = actx.createBufferSource(), g = actx.createGain(), f = actx.createBiquadFilter();
+    src.buffer = noiseBuf(0.15);
+    f.type='bandpass'; f.frequency.value = 1500; f.Q.value = 0.6;
+    src.connect(f); f.connect(g); g.connect(dest);
+    g.gain.setValueAtTime(vol, when + off);
+    g.gain.exponentialRampToValueAtTime(0.001, when + off + 0.07);
+    src.start(when + off); src.stop(when + off + 0.09);
+  }
+}
+
+function B(when, p) {
+  const o = p||{}, dest = o.dest || bassBus;
+  const f = o.f||55, type = o.type||'sawtooth', vol = o.vol==null?0.5:o.vol;
+  const dur = o.dur||0.2, lp = o.lp||700, attack = o.attack||0.005;
+  const osc = actx.createOscillator(), g = actx.createGain(), filt = actx.createBiquadFilter();
+  osc.type = type; osc.frequency.setValueAtTime(f, when);
+  filt.type = 'lowpass'; filt.frequency.value = lp;
+  osc.connect(filt); filt.connect(g); g.connect(dest);
+  g.gain.setValueAtTime(0.0001, when);
+  g.gain.linearRampToValueAtTime(vol, when + attack);
+  g.gain.exponentialRampToValueAtTime(0.001, when + dur);
+  osc.start(when); osc.stop(when + dur + 0.05);
+}
+
+function L(when, p) {
+  const o = p||{}, dest = o.dest || leadBus;
+  const f = o.f||440, type = o.type||'sawtooth', vol = o.vol==null?0.22:o.vol;
+  const dur = o.dur||0.25, lp = o.lp||4500, attack = o.attack||0.005, det = o.detune||0;
+  const osc = actx.createOscillator(), g = actx.createGain(), filt = actx.createBiquadFilter();
+  osc.type = type; osc.frequency.value = f; osc.detune.value = det;
+  filt.type = 'lowpass'; filt.frequency.value = lp;
+  osc.connect(filt); filt.connect(g); g.connect(dest);
+  g.gain.setValueAtTime(0.0001, when);
+  g.gain.linearRampToValueAtTime(vol, when + attack);
+  g.gain.exponentialRampToValueAtTime(0.001, when + dur);
+  osc.start(when); osc.stop(when + dur + 0.05);
+}
+
+function CHORD(when, freqs, p) {
+  const o = p||{}, vol = o.vol==null?0.18:o.vol, dur = o.dur||0.4;
+  const lp = o.lp||3500, voices = o.voices||3, spread = o.spread||15;
+  const type = o.type||'sawtooth', attack = o.attack==null?0.02:o.attack;
+  const dest = o.dest || leadBus;
+  for (const f of freqs) {
+    for (let v = 0; v < voices; v++) {
+      const det = (v - (voices-1)/2) * spread;
+      L(when, {f, type, vol: vol/(voices*Math.max(1,freqs.length*0.5)), dur, lp, detune: det, attack, dest});
+    }
+  }
+}
+
+function BELL(when, p) {
+  const o = p||{}, f = o.f||880, vol = o.vol==null?0.18:o.vol, dur = o.dur||0.6;
+  const dest = o.dest || leadBus;
+  const car = actx.createOscillator(), mod = actx.createOscillator();
+  const cg = actx.createGain(), mg = actx.createGain();
+  car.frequency.value = f; mod.frequency.value = f * 3;
+  mg.gain.value = f * 2;
+  mod.connect(mg); mg.connect(car.frequency);
+  cg.gain.setValueAtTime(vol, when);
+  cg.gain.exponentialRampToValueAtTime(0.001, when + dur);
+  car.connect(cg); cg.connect(dest);
+  car.start(when); mod.start(when);
+  car.stop(when + dur + 0.05); mod.stop(when + dur + 0.05);
+}
+
+// ── TRACK DEFINITIONS ────────────────────────────────────
+// Each track defines drum/bass/lead voicing functions + chord progression.
+// Section structure (32-bar phrase): INTRO 4 → VERSE 4 → BUILD 4 → DROP 8 → BREAK 4 → DROP 8 → loop.
+// intensity: 0=intro, 1=verse, 2=build, 3=drop, 4=break.
+const SECTIONS = [
+  { name:'INTRO', bars:4, intensity:0 },
+  { name:'VERSE', bars:4, intensity:1 },
+  { name:'BUILD', bars:4, intensity:2 },
+  { name:'DROP',  bars:8, intensity:3 },
+  { name:'BREAK', bars:4, intensity:4 },
+  { name:'DROP',  bars:8, intensity:3 }
+];
+const PHRASE_BARS = 32;
+
+function getSection(barInPhrase) {
+  let n = 0;
+  for (const s of SECTIONS) {
+    if (barInPhrase < n + s.bars) return s;
+    n += s.bars;
+  }
+  return SECTIONS[SECTIONS.length-1];
+}
+
+const TRACKS = [
+  // 1. HELIOS — festival big-room anthem
+  {
+    id:'helios', artist:'NXVØS', title:'HELIOS', style:'BIG ROOM EDM', color:'#ff00ff',
+    key:220, prog:[220, 174.61, 261.63, 196],
+    drum(when, step, ints) {
+      if (step % 4 === 0 && ints >= 1) K(when, {f:150, drop:42, vol:0.95, dur:0.2, click:0.18});
+      if (ints === 0 && (step===0||step===8)) K(when, {f:140, drop:40, vol:0.7});
+      if (ints >= 1 && step % 4 === 2) H(when, {vol:0.15, hp:9000});
+      if (ints >= 2 && step % 2 === 1) H(when, {vol:0.1, hp:9500});
+      if (ints >= 3 && step === 14) H(when, {vol:0.18, open:1, hp:8000});
+      if (ints >= 1 && (step===4||step===12)) CL(when, {vol:0.32});
+      if (ints === 2 && step % 2 === 0) S(when, {tone:240, vol:0.25 + (step/16)*0.25, dur:0.08});
+    },
+    bass(when, step, rootHz, ints) {
+      if (ints === 0) return;
+      if (step % 2 === 0) {
+        const f = rootHz/4;
+        B(when, {f, type:'sawtooth', vol:0.45, dur:0.18, lp:650});
+        B(when, {f, type:'square',   vol:0.12, dur:0.18, lp:600});
+      }
+    },
+    lead(when, step, rootHz, ints, bar) {
+      if (ints < 3 && ints !== 4) return;
+      const motif = [0, 7, 12, 7, 0, 7, 12, 14];
+      if (step % 2 === 0) {
+        const idx = ((bar*8) + step/2) % motif.length;
+        const semi = motif[idx];
+        const f = (rootHz*2) * Math.pow(2, semi/12);
+        if (ints === 4) {
+          if (step === 0) CHORD(when, [rootHz, rootHz*1.5, rootHz*2], {vol:0.14, dur:1.2, voices:3, spread:18, attack:0.05});
+        } else {
+          L(when, {f, type:'sawtooth', vol:0.22, dur:0.22, lp:5500, detune:-12});
+          L(when, {f, type:'sawtooth', vol:0.18, dur:0.22, lp:5500, detune:12});
+          L(when, {f:f*0.5, type:'square', vol:0.08, dur:0.22, lp:3500});
+        }
+      }
+    }
+  },
+  // 2. SUBTERRANEAN — melodic dubstep / future bass
+  {
+    id:'subterranean', artist:'KILO ZERO', title:'SUBTERRANEAN', style:'MELODIC DUBSTEP', color:'#00eeff',
+    key:185, prog:[185, 146.83, 220, 164.81],
+    drum(when, step, ints) {
+      if (ints >= 1 && step === 0) K(when, {f:130, drop:35, vol:0.95, dur:0.22, click:0.1});
+      if (ints >= 1 && step === 8) S(when, {tone:200, vol:0.55, dur:0.18, hp:1200});
+      if (ints === 0 && step === 0) K(when, {f:120, drop:30, vol:0.7, dur:0.22});
+      if (ints >= 2 && step % 2 === 1) H(when, {vol:0.13, hp:9000});
+      if (ints >= 3 && step % 4 === 3) H(when, {vol:0.16, hp:8500});
+      if (ints === 3 && step === 6) S(when, {tone:240, vol:0.18, dur:0.06, hp:2000});
+      if (ints === 3 && step === 14) S(when, {tone:240, vol:0.22, dur:0.07, hp:2000});
+      if (ints === 2 && step % 2 === 0) S(when, {tone:230, vol:0.2 + (step/16)*0.3, dur:0.08, hp:1600});
+    },
+    bass(when, step, rootHz, ints) {
+      if (ints === 0) return;
+      if (step % 4 === 0) {
+        B(when, {f: rootHz/4, type:'sawtooth', vol:0.5, dur:0.4, lp:400+ints*200});
+        B(when, {f: rootHz/4*1.01, type:'sawtooth', vol:0.3, dur:0.4, lp:400+ints*200});
+      }
+      if (ints >= 3 && (step===6 || step===10)) {
+        B(when, {f: rootHz/4, type:'square', vol:0.35, dur:0.18, lp:800});
+      }
+    },
+    lead(when, step, rootHz, ints, bar) {
+      if (ints === 4 && step === 0) {
+        CHORD(when, [rootHz, rootHz*1.2, rootHz*1.5], {vol:0.14, dur:1.5, voices:3, spread:20, lp:3000, attack:0.05});
+      }
+      if (ints !== 3) return;
+      const pent = [0, 3, 5, 7, 10, 12];
+      if (step % 4 === 0) {
+        const semi = pent[(bar*4 + step/4) % pent.length];
+        const f = (rootHz*2) * Math.pow(2, semi/12);
+        L(when, {f, type:'triangle', vol:0.25, dur:0.45, lp:5000});
+        BELL(when, {f:f*2, vol:0.12, dur:0.5});
+      }
+    }
+  },
+  // 3. NEON HEART — synthwave / retrowave
+  {
+    id:'neonheart', artist:'RUBY OKTANE', title:'NEON HEART', style:'SYNTHWAVE', color:'#ff3399',
+    key:146.83, prog:[146.83, 116.54, 174.61, 196],
+    drum(when, step, ints) {
+      if (ints >= 1 && step % 4 === 0) K(when, {f:135, drop:42, vol:0.85, dur:0.16, click:0.12});
+      if (ints === 0 && (step===0||step===8)) K(when, {f:130, drop:40, vol:0.65, dur:0.18});
+      if (ints >= 1 && (step===4||step===12)) S(when, {tone:220, vol:0.4, dur:0.1, hp:1800});
+      if (ints >= 2 && step % 2 === 1) H(when, {vol:0.13, hp:9500});
+      if (ints >= 3 && step === 14) H(when, {vol:0.2, open:1, hp:8500});
+      if (ints === 2 && step >= 8 && step % 2 === 0) {
+        K(when, {f:200 - (step-8)*15, drop:80, vol:0.45, dur:0.12});
+      }
+    },
+    bass(when, step, rootHz, ints) {
+      if (ints === 0) return;
+      if (step % 2 === 0) {
+        const oct = step % 4 === 0 ? 0.5 : 1;
+        B(when, {f: (rootHz/4)*oct, type:'sawtooth', vol:0.42, dur:0.18, lp:900});
+        B(when, {f: (rootHz/4)*oct, type:'square',   vol:0.1, dur:0.18, lp:800});
+      }
+    },
+    lead(when, step, rootHz, ints, bar) {
+      if (ints < 3 && ints !== 4) return;
+      const motif = [0, 5, 7, 12, 7, 5, 0, -5];
+      if (step % 2 === 0) {
+        const idx = (bar*8 + step/2) % motif.length;
+        const semi = motif[idx];
+        const f = (rootHz*2) * Math.pow(2, semi/12);
+        if (ints === 4) {
+          if (step === 0) CHORD(when, [rootHz, rootHz*1.25, rootHz*1.5], {vol:0.14, dur:0.6, voices:3, spread:8, lp:3000, attack:0.05});
+        } else {
+          L(when, {f, type:'sawtooth', vol:0.22, dur:0.24, lp:4500, detune:-7});
+          L(when, {f, type:'sawtooth', vol:0.20, dur:0.24, lp:4500, detune:7});
+          if (step === 0 && bar%2 === 0) BELL(when, {f:f*2, vol:0.14, dur:0.4});
+        }
+      }
+    }
+  },
+  // 4. TRENCH — driving techno
+  {
+    id:'trench', artist:'VOID SECTOR', title:'TRENCH', style:'DRIVING TECHNO', color:'#00ff88',
+    key:138.59, prog:[138.59, 207.65, 184.99, 233.08],
+    drum(when, step, ints) {
+      if (ints >= 1 && step % 4 === 0) K(when, {f:120, drop:38, vol:1.0, dur:0.22, click:0.2});
+      if (ints === 0 && step % 4 === 0) K(when, {f:115, drop:35, vol:0.7, dur:0.22});
+      if (ints >= 1 && (step===4||step===12)) CL(when, {vol:0.28});
+      if (ints >= 1 && step % 2 === 1) H(when, {vol:0.14, hp:9500});
+      if (ints >= 3 && step === 6) H(when, {vol:0.22, open:1, hp:7500});
+      if (ints === 2 && step % 2 === 0) S(when, {tone:280, vol:0.18 + (step/16)*0.32, dur:0.07, hp:2000});
+    },
+    bass(when, step, rootHz, ints) {
+      if (ints === 0) return;
+      if (step % 2 === 0) {
+        B(when, {f: rootHz/4, type:'sawtooth', vol:0.4, dur:0.2, lp:500 + ints*150});
+        B(when, {f: rootHz/4*0.99, type:'sawtooth', vol:0.32, dur:0.2, lp:500 + ints*150});
+        B(when, {f: rootHz/4*1.01, type:'sawtooth', vol:0.28, dur:0.2, lp:500 + ints*150});
+      }
+    },
+    lead(when, step, rootHz, ints, bar) {
+      if (ints !== 3 && ints !== 4) return;
+      if (ints === 4 && step === 0) {
+        CHORD(when, [rootHz, rootHz*1.5, rootHz*2], {vol:0.13, dur:1.0, voices:2, spread:10, lp:2500, attack:0.05});
+        return;
+      }
+      if (ints !== 3) return;
+      const arp = [0, 7, 12, 7, 3, 7, 12, 7];
+      const idx = (bar*16 + step) % arp.length;
+      const semi = arp[idx];
+      const f = (rootHz*2) * Math.pow(2, semi/12);
+      L(when, {f, type:'square', vol:0.16, dur:0.13, lp:3500, attack:0.002});
+    }
+  },
+  // 5. SUNDIAL — progressive house
+  {
+    id:'sundial', artist:'AURA-9', title:'SUNDIAL', style:'PROGRESSIVE HOUSE', color:'#ffaa00',
+    key:164.81, prog:[164.81, 130.81, 196, 146.83],
+    drum(when, step, ints) {
+      if (ints >= 1 && step % 4 === 0) K(when, {f:140, drop:40, vol:0.9, dur:0.2, click:0.15});
+      if (ints === 0 && step === 0) K(when, {f:130, drop:38, vol:0.65, dur:0.2});
+      if (ints >= 1 && (step===4||step===12)) S(when, {tone:230, vol:0.42, dur:0.12, hp:1500});
+      if (ints >= 2 && step % 2 === 1) H(when, {vol:0.13, hp:9200});
+      if (ints >= 3 && step === 14) H(when, {vol:0.2, open:1, hp:8000});
+      if (ints === 2 && step % 2 === 0) S(when, {tone:240, vol:0.2 + (step/16)*0.3, dur:0.08, hp:1800});
+    },
+    bass(when, step, rootHz, ints) {
+      if (ints === 0) return;
+      if (step % 2 === 0) {
+        B(when, {f: rootHz/4, type:'sine', vol:0.55, dur:0.22, lp:300});
+        B(when, {f: rootHz/4, type:'sawtooth', vol:0.18, dur:0.22, lp:600});
+      }
+    },
+    lead(when, step, rootHz, ints, bar) {
+      if (ints < 3 && ints !== 4) return;
+      if (step === 0 && bar % 2 === 0 && ints === 3) {
+        CHORD(when, [rootHz, rootHz*1.2, rootHz*1.5, rootHz*1.78], {vol:0.18, dur:1.2, voices:4, spread:20, lp:5000, attack:0.05});
+      }
+      if (ints === 3 && step % 4 === 0) {
+        const motif = [0, 7, 12, 7];
+        const semi = motif[(bar*4 + step/4) % motif.length];
+        const f = (rootHz*2) * Math.pow(2, semi/12);
+        L(when, {f, type:'triangle', vol:0.22, dur:0.35, lp:4500, attack:0.01});
+        L(when, {f, type:'sawtooth', vol:0.12, dur:0.35, lp:4500, attack:0.01, detune:7});
+      }
+      if (ints === 4 && step === 0) {
+        CHORD(when, [rootHz, rootHz*1.2, rootHz*1.5], {vol:0.13, dur:1.5, voices:3, spread:15, lp:3000, attack:0.1});
+      }
+    }
+  }
+];
+
+// ── TRACK STATE ──
+let trackIdx = 0;
+let trackRandom = true;
+let curTrack = null;
+let songStep = 0;
+let songBar = 0;
+
+function pickTrack() {
+  if (trackRandom) curTrack = TRACKS[Math.floor(Math.random()*TRACKS.length)];
+  else curTrack = TRACKS[trackIdx % TRACKS.length];
+}
+function resetSong() { songStep = 0; songBar = 0; }
+
+function scheduleSongBeat(audioStart) {
+  if (!curTrack) return;
+  const stepDur = (beatMs() / 4) / 1000;
+  for (let s = 0; s < 4; s++) {
+    const when = audioStart + s * stepDur;
+    const stepIdx = songStep + s;
+    const stepInBar = stepIdx % 16;
+    const barInPhrase = Math.floor(stepIdx / 16) % PHRASE_BARS;
+    const sec = getSection(barInPhrase);
+    const rootHz = curTrack.prog[barInPhrase % curTrack.prog.length];
+    curTrack.drum(when, stepInBar, sec.intensity);
+    curTrack.bass(when, stepInBar, rootHz, sec.intensity);
+    curTrack.lead(when, stepInBar, rootHz, sec.intensity, barInPhrase);
+  }
+  songStep += 4;
+  if (songStep % 16 === 0) songBar++;
+}
+
+// ── ONE-SHOT SFX (preserve old API) ──
 function playPadHit() {
-  const freq = DORIAN[Math.floor(Math.random() * DORIAN.length)];
-  osc(freq, 'sine', 0.35, 0.28);
-  osc(freq * 2, 'sine', 0.12, 0.18);
+  if (!actx) return;
+  const root = (curTrack ? curTrack.key : 261.63);
+  const scale = [0, 3, 5, 7, 10, 12, 15];
+  const semi = scale[Math.floor(Math.random() * scale.length)];
+  const f = root * 2 * Math.pow(2, semi/12);
+  L(actx.currentTime, {f, type:'sine', vol:0.3, dur:0.32, lp:6500, dest:fxBus});
+  L(actx.currentTime, {f:f*2, type:'sine', vol:0.12, dur:0.2, lp:6500, dest:fxBus});
 }
 
 function playMiss() {
-  osc(200, 'sawtooth', 0.28, 0.18);
-  setTimeout(() => osc(150, 'sawtooth', 0.2, 0.15), 60);
+  if (!actx) return;
+  L(actx.currentTime, {f:200, type:'sawtooth', vol:0.28, dur:0.2, lp:2000, dest:fxBus});
+  L(actx.currentTime + 0.06, {f:150, type:'sawtooth', vol:0.22, dur:0.18, lp:2000, dest:fxBus});
 }
 
 function playDanger() {
-  osc(90, 'square', 0.45, 0.22);
+  if (!actx) return;
+  L(actx.currentTime, {f:90, type:'square', vol:0.45, dur:0.22, lp:1500, dest:fxBus});
 }
 
 function playDrop() {
+  if (!actx) return;
   for (let i = 0; i < 4; i++) {
-    const f = [55, 70, 90, 110][i];
-    osc(f, 'sine', 0.5, 0.7, i * 0.07);
+    L(actx.currentTime + i*0.07, {f:[55,70,90,110][i], type:'sine', vol:0.5, dur:0.7, lp:1500, dest:fxBus});
   }
-  // swell noise
-  const buf = actx.createBuffer(1, actx.sampleRate * 0.5, actx.sampleRate);
-  const d = buf.getChannelData(0);
-  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (i / d.length);
+  // riser swell
+  const t = actx.currentTime;
   const src = actx.createBufferSource(), g = actx.createGain(), f = actx.createBiquadFilter();
-  f.type = 'bandpass'; f.frequency.value = 400;
-  src.buffer = buf; src.connect(f); f.connect(g); g.connect(actx.destination);
-  g.gain.setValueAtTime(0.3, actx.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.5);
-  src.start(); src.stop(actx.currentTime + 0.55);
+  src.buffer = noiseBuf(0.5);
+  f.type='bandpass'; f.frequency.setValueAtTime(400, t);
+  f.frequency.exponentialRampToValueAtTime(8000, t + 0.5);
+  f.Q.value = 4;
+  src.connect(f); f.connect(g); g.connect(fxBus);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(0.3, t + 0.45);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+  src.start(t); src.stop(t + 0.6);
 }
 
 function playClick() {
-  const buf = actx.createBuffer(1, actx.sampleRate * 0.02, actx.sampleRate);
-  const d = buf.getChannelData(0);
-  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+  if (!actx) return;
+  const t = actx.currentTime;
   const src = actx.createBufferSource(), g = actx.createGain(), f = actx.createBiquadFilter();
-  f.type = 'bandpass'; f.frequency.value = 1200; f.Q.value = 2;
-  src.buffer = buf; src.connect(f); f.connect(g); g.connect(actx.destination);
-  g.gain.setValueAtTime(0.5, actx.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.02);
-  src.start(); src.stop(actx.currentTime + 0.03);
+  src.buffer = noiseBuf(0.03);
+  f.type='bandpass'; f.frequency.value = 1200; f.Q.value = 2;
+  src.connect(f); f.connect(g); g.connect(fxBus);
+  g.gain.setValueAtTime(0.5, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
+  src.start(t); src.stop(t + 0.04);
 }
 
 function playGameOver() {
-  [440, 370, 311, 261].forEach((f, i) => osc(f, 'sawtooth', 0.28, 0.22, i * 0.14));
+  if (!actx) return;
+  [440, 370, 311, 261].forEach((f, i) => {
+    L(actx.currentTime + i*0.14, {f, type:'sawtooth', vol:0.28, dur:0.22, lp:3000, dest:fxBus});
+  });
 }
 
 // ── STORAGE ──────────────────────────────────────────────
@@ -458,7 +884,49 @@ function saveStats(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if (id === 's-rec') renderRecords();
+  if (id === 's-rec')   renderRecords();
+  if (id === 's-track') renderTrackList();
+}
+
+function renderTrackList() {
+  const el = document.getElementById('track-list');
+  el.innerHTML = '';
+  const items = [{id:'random', artist:'', title:'RANDOM', style:'PICK ANY EACH RUN', color:'#ffffff'}, ...TRACKS];
+  for (const t of items) {
+    const isSel = (t.id === 'random' && trackRandom) || (!trackRandom && TRACKS[trackIdx] && TRACKS[trackIdx].id === t.id);
+    const row = document.createElement('div');
+    row.className = 'track-row' + (isSel ? ' selected' : '');
+    row.style.borderColor = t.color;
+    row.style.color = t.color;
+    row.innerHTML = `
+      <div class="track-meta">
+        ${t.artist ? `<div class="track-artist">${t.artist}</div>` : ''}
+        <div class="track-title">${t.title}</div>
+        <div class="track-style">${t.style}</div>
+      </div>
+      ${isSel ? '<div class="track-check">✓</div>' : ''}
+    `;
+    row.onclick = () => {
+      if (t.id === 'random') trackRandom = true;
+      else { trackRandom = false; trackIdx = TRACKS.findIndex(x => x.id === t.id); }
+      renderTrackList();
+    };
+    el.appendChild(row);
+  }
+}
+
+function showNowPlaying() {
+  if (!curTrack) return;
+  const b = document.getElementById('np-banner');
+  b.style.borderColor = curTrack.color;
+  b.style.color = curTrack.color;
+  b.innerHTML = `
+    <div class="np-artist">${curTrack.artist}</div>
+    <div class="np-title">${curTrack.title}</div>
+    <div class="np-style">${curTrack.style}</div>
+  `;
+  b.classList.add('on');
+  setTimeout(() => b.classList.remove('on'), 2400);
 }
 
 // ── GRID BUILD ───────────────────────────────────────────
@@ -483,6 +951,9 @@ function padLife()  { return beatMs() * 2; }
 // ── GAME START ───────────────────────────────────────────
 function startGame() {
   audio();
+  pickTrack();
+  resetSong();
+  showNowPlaying();
   score = 0; lives = 3; combo = 1; level = 1; hits = 0; bestCombo = 1;
   running = true; dropping = false; beatCount = 0; nextBeatAbsTime = 0;
   t0 = Date.now();
@@ -551,7 +1022,7 @@ function onBeat() {
   if (!running) return;
   nextBeatAbsTime += beatMs();
   beatCount++;
-  playKick();
+  scheduleSongBeat(actx.currentTime);
   pulseDot();
   expireCheck();
   spawn();
@@ -559,7 +1030,6 @@ function onBeat() {
   const halfMs = Math.round(beatMs() / 2);
   setTimeout(() => {
     if (!running) return;
-    playHat();
     if (level >= 4 && beatCount > 1 && Math.random() < 0.3) spawn();
   }, halfMs);
   scheduleTick();
