@@ -73,6 +73,16 @@
     box-shadow: 0 0 18px var(--danger);
     animation: dpulse 0.35s ease-in-out infinite alternate;
   }
+  .pad.danger::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 38%; height: 38%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    border: 2px solid rgba(255,17,51,0.7);
+    box-shadow: 0 0 5px rgba(255,17,51,0.5), inset 0 0 5px rgba(255,17,51,0.2);
+    pointer-events: none;
+  }
   @keyframes dpulse {
     from { box-shadow: 0 0 8px var(--danger); }
     to   { box-shadow: 0 0 28px var(--danger), 0 0 48px rgba(255,17,51,0.4); }
@@ -230,6 +240,11 @@
   <div class="text-xl font-bold glow-p mb-4 tracking-widest">PATCH NOTES</div>
   <div class="w-full max-w-sm px-1" style="max-height:65vh;overflow-y:auto;">
     <div class="note-item">
+      <div class="note-ver">v0.0.04</div>
+      <div class="note-date">2026-05-07</div>
+      <div>Beat timing overhauled: count-in now locks to game BPM, beat loop uses absolute-time scheduler for rock-solid 4/4 throughout. Danger pads now show a geometric diamond centre.</div>
+    </div>
+    <div class="note-item">
       <div class="note-ver">v0.0.03</div>
       <div class="note-date">2026-05-07</div>
       <div>Halved BPM ramp rate — BPM_PER_LEVEL reduced from 8 to 4, music now takes roughly twice as long to reach max tempo.</div>
@@ -290,7 +305,7 @@
   </div>
 </div>
 
-<div class="footer">GRIDRAVE v0.0.03 &nbsp;·&nbsp; TACTICON STUDIOS</div>
+<div class="footer">GRIDRAVE v0.0.04 &nbsp;·&nbsp; TACTICON STUDIOS</div>
 
 <script>
 // ── CONFIG ───────────────────────────────────────────────
@@ -313,7 +328,7 @@ let pads = [];
 let score, lives, combo, level, hits, bestCombo;
 let running = false, dropping = false;
 let beatIv = null, dropEndTo = null;
-let t0 = 0, beatTick = 0, beatCount = 0;
+let t0 = 0, beatCount = 0, nextBeatAbsTime = 0;
 
 // ── AUDIO ────────────────────────────────────────────────
 function audio() {
@@ -438,10 +453,10 @@ function padLife()  { return beatMs() * 2; }
 function startGame() {
   audio();
   score = 0; lives = 3; combo = 1; level = 1; hits = 0; bestCombo = 1;
-  running = true; dropping = false; beatTick = 0; beatCount = 0;
+  running = true; dropping = false; beatCount = 0; nextBeatAbsTime = 0;
   t0 = Date.now();
 
-  clearInterval(beatIv); clearTimeout(dropEndTo);
+  clearTimeout(beatIv); clearTimeout(dropEndTo);
   document.getElementById('drop-overlay').classList.remove('on');
   document.getElementById('drop-banner').style.display = 'none';
 
@@ -481,10 +496,11 @@ function countIn() {
     if (c < 4) {
       setTimeout(tick, ms);
     } else {
+      nextBeatAbsTime = Date.now() + ms;
       setTimeout(() => {
         overlay.classList.remove('on');
         startLoop();
-      }, ms);
+      }, Math.round(ms / 2));
     }
   }
   tick();
@@ -492,24 +508,31 @@ function countIn() {
 
 // ── BEAT LOOP ────────────────────────────────────────────
 function startLoop() {
-  clearInterval(beatIv);
-  const half = beatMs() / 2;
-  beatIv = setInterval(() => {
+  clearTimeout(beatIv);
+  scheduleTick();
+}
+
+function scheduleTick() {
+  const delay = Math.max(0, nextBeatAbsTime - Date.now());
+  beatIv = setTimeout(onBeat, delay);
+}
+
+function onBeat() {
+  if (!running) return;
+  nextBeatAbsTime += beatMs();
+  beatCount++;
+  playKick();
+  pulseDot();
+  expireCheck();
+  if (beatCount > 1) spawn();
+  if (!dropping && beatCount % 64 === 0) startDrop();
+  const halfMs = Math.round(beatMs() / 2);
+  setTimeout(() => {
     if (!running) return;
-    beatTick++;
-    if (beatTick % 2 === 1) {
-      // on-beat
-      beatCount++;
-      playKick();
-      pulseDot();
-      expireCheck();
-      if (beatCount > 1) spawn();
-      if (!dropping && beatCount % 64 === 0) startDrop();
-    } else {
-      playHat();
-      if (level >= 4 && beatCount > 1 && Math.random() < 0.3) spawn();
-    }
-  }, half);
+    playHat();
+    if (level >= 4 && beatCount > 1 && Math.random() < 0.3) spawn();
+  }, halfMs);
+  scheduleTick();
 }
 
 function pulseDot() {
@@ -588,7 +611,7 @@ function tapPad(idx) {
   if (combo < 5) combo++;
   updateCombo();
 
-  if (hits % HITS_PER_LVL === 0) { level++; startLoop(); }
+  if (hits % HITS_PER_LVL === 0) { level++; }
 
   p.el.classList.add('hit');
   setTimeout(() => deactivate(idx), 150);
@@ -646,7 +669,7 @@ function hud() {
 // ── END ──────────────────────────────────────────────────
 function endGame() {
   running = false;
-  clearInterval(beatIv); clearTimeout(dropEndTo);
+  clearTimeout(beatIv); clearTimeout(dropEndTo);
   document.getElementById('drop-overlay').classList.remove('on');
   document.getElementById('drop-banner').style.display = 'none';
   playGameOver();
