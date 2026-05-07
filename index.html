@@ -191,7 +191,7 @@
   <div class="flex flex-col gap-3 items-center w-full max-w-xs">
     <button class="btn w-full" onclick="startGame()">PLAY</button>
     <button class="btn btn-a w-full" onclick="showScreen('s-how')">HOW TO PLAY</button>
-    <button class="btn w-full" onclick="showScreen('s-rec')">RECORDS</button>
+    <button class="btn w-full" onclick="showScreen('s-rec')">GAME HISTORY</button>
     <button class="btn btn-a w-full" onclick="showScreen('s-notes')">PATCH NOTES</button>
   </div>
 </div>
@@ -218,9 +218,9 @@
   <button class="btn mt-5" onclick="showScreen('s-menu')">BACK</button>
 </div>
 
-<!-- RECORDS -->
+<!-- GAME HISTORY -->
 <div id="s-rec" class="screen">
-  <div class="text-xl font-bold glow-a mb-4 tracking-widest">RECORDS</div>
+  <div class="text-xl font-bold glow-a mb-4 tracking-widest">GAME HISTORY</div>
   <div id="rec-body" class="w-full max-w-xs"></div>
   <button class="btn btn-a mt-6" onclick="showScreen('s-menu')">BACK</button>
 </div>
@@ -229,6 +229,11 @@
 <div id="s-notes" class="screen">
   <div class="text-xl font-bold glow-p mb-4 tracking-widest">PATCH NOTES</div>
   <div class="w-full max-w-sm px-1" style="max-height:65vh;overflow-y:auto;">
+    <div class="note-item">
+      <div class="note-ver">v0.0.02</div>
+      <div class="note-date">2026-05-07</div>
+      <div>Renamed Records screen to Game History. Pre-lights starting tile during count-in, count-in starts immediately, click sound replaces kick during countdown.</div>
+    </div>
     <div class="note-item">
       <div class="note-ver">v0.0.01</div>
       <div class="note-date">2026-05-06</div>
@@ -280,7 +285,7 @@
   </div>
 </div>
 
-<div class="footer">GRIDRAVE v0.0.01 &nbsp;·&nbsp; TACTICON STUDIOS</div>
+<div class="footer">GRIDRAVE v0.0.02 &nbsp;·&nbsp; TACTICON STUDIOS</div>
 
 <script>
 // ── CONFIG ───────────────────────────────────────────────
@@ -374,6 +379,18 @@ function playDrop() {
   src.start(); src.stop(actx.currentTime + 0.55);
 }
 
+function playClick() {
+  const buf = actx.createBuffer(1, actx.sampleRate * 0.02, actx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+  const src = actx.createBufferSource(), g = actx.createGain(), f = actx.createBiquadFilter();
+  f.type = 'bandpass'; f.frequency.value = 1200; f.Q.value = 2;
+  src.buffer = buf; src.connect(f); f.connect(g); g.connect(actx.destination);
+  g.gain.setValueAtTime(0.5, actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.02);
+  src.start(); src.stop(actx.currentTime + 0.03);
+}
+
 function playGameOver() {
   [440, 370, 311, 261].forEach((f, i) => osc(f, 'sawtooth', 0.28, 0.22, i * 0.14));
 }
@@ -435,6 +452,18 @@ function countIn() {
   const overlay = document.getElementById('count-in');
   const numEl = document.getElementById('count-num');
   overlay.classList.add('on');
+
+  // pre-light starting tile from beat 1; expiry covers full count-in + padLife so beat 1 of game is tap time
+  const idle = pads.map((p, i) => p.state === 'idle' ? i : -1).filter(i => i >= 0);
+  shuffle(idle);
+  const sp = pads[idle[0]];
+  const col = PAD_COLORS[Math.floor(Math.random() * PAD_COLORS.length)];
+  sp.state = 'active';
+  sp.expiry = Date.now() + padLife() + 4 * ms;
+  sp.el.style.setProperty('--pad-color', col);
+  sp.el.style.background = hexRgba(col, 0.15);
+  sp.el.className = 'pad active';
+
   let c = 0;
   function tick() {
     c++;
@@ -442,7 +471,7 @@ function countIn() {
     numEl.style.animation = 'none';
     void numEl.offsetWidth;
     numEl.style.animation = '';
-    playKick();
+    playClick();
     pulseDot();
     if (c < 4) {
       setTimeout(tick, ms);
@@ -453,7 +482,7 @@ function countIn() {
       }, ms);
     }
   }
-  setTimeout(tick, ms);
+  tick();
 }
 
 // ── BEAT LOOP ────────────────────────────────────────────
@@ -643,7 +672,7 @@ function endGame() {
   showScreen('s-result');
 }
 
-// ── RECORDS SCREEN ───────────────────────────────────────
+// ── GAME HISTORY SCREEN ───────────────────────────────────────
 function renderRecords() {
   const s = loadStats();
   document.getElementById('rec-body').innerHTML = `
