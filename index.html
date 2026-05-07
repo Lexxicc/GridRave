@@ -196,25 +196,68 @@
   .footer { font-size: 0.62rem; color: #2a1a2a; text-align: center; position: fixed; bottom: 0.4rem; left: 0; right: 0; letter-spacing: 0.06em; }
 
   .track-row {
-    border: 1px solid #444;
-    border-radius: 8px;
-    padding: 0.6rem 0.85rem;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 0.55rem 0.7rem 0.55rem 0.55rem;
     cursor: pointer;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    background: rgba(0,0,0,0.35);
-    transition: border-color 0.15s, box-shadow 0.15s;
+    gap: 0.65rem;
+    background: rgba(0,0,0,0.4);
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
   }
+  .track-row:hover { background: rgba(255,255,255,0.025); }
   .track-row.selected {
     background: rgba(255,255,255,0.04);
-    box-shadow: 0 0 14px currentColor;
+    box-shadow: 0 0 12px currentColor;
   }
-  .track-meta { text-align: left; line-height: 1.2; }
-  .track-artist { font-size: 0.62rem; opacity: 0.65; letter-spacing: 0.18em; }
-  .track-title  { font-size: 1.05rem; font-weight: bold; letter-spacing: 0.12em; margin: 0.1rem 0; }
-  .track-style  { font-size: 0.6rem; opacity: 0.55; letter-spacing: 0.22em; }
-  .track-check  { font-size: 1.3rem; opacity: 0.85; }
+  .track-num {
+    font-size: 0.7rem;
+    opacity: 0.5;
+    letter-spacing: 0.15em;
+    min-width: 18px;
+    font-weight: bold;
+  }
+  .track-meta { text-align: left; line-height: 1.2; flex: 1; min-width: 0; }
+  .track-artist { font-size: 0.6rem; opacity: 0.65; letter-spacing: 0.2em; }
+  .track-title  { font-size: 0.95rem; font-weight: bold; letter-spacing: 0.1em; margin: 0.1rem 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .track-style  { font-size: 0.55rem; opacity: 0.5; letter-spacing: 0.22em; }
+  .track-check  { font-size: 1.1rem; opacity: 0.85; min-width: 16px; text-align: center; }
+  .track-play {
+    background: transparent;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    width: 30px; height: 30px;
+    color: inherit;
+    font-size: 0.8rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 0;
+    transition: background 0.15s;
+  }
+  .track-play:hover, .track-play:active {
+    background: currentColor;
+    color: #000;
+  }
+  .track-row.playing .track-play {
+    background: currentColor;
+    color: #000;
+    box-shadow: 0 0 10px currentColor;
+  }
+  .eq {
+    display: inline-flex; align-items: flex-end; gap: 2px;
+    height: 14px; flex-shrink: 0;
+  }
+  .eq span {
+    display: block; width: 3px; background: currentColor;
+    border-radius: 1px;
+    animation: eqbar 0.55s ease-in-out infinite alternate;
+  }
+  .eq span:nth-child(1) { animation-delay: 0s;    height: 70%; }
+  .eq span:nth-child(2) { animation-delay: 0.15s; height: 100%; }
+  .eq span:nth-child(3) { animation-delay: 0.3s;  height: 50%; }
+  @keyframes eqbar { from { height: 20%; } to { height: 100%; } }
 
   #np-banner {
     position: fixed; top: 30%; left: 50%; transform: translateX(-50%);
@@ -252,18 +295,19 @@
   <div class="text-xs glow-w tracking-widest mb-8 text-center">FEEL THE BEAT · TAP THE GRID</div>
   <div class="flex flex-col gap-3 items-center w-full max-w-xs">
     <button class="btn w-full" onclick="startGame()">PLAY</button>
-    <button class="btn btn-a w-full" onclick="showScreen('s-track')">TRACK SELECT</button>
+    <button class="btn btn-a w-full" onclick="showScreen('s-disco')">DISCOGRAPHY</button>
     <button class="btn w-full" onclick="showScreen('s-how')">HOW TO PLAY</button>
     <button class="btn btn-a w-full" onclick="showScreen('s-rec')">GAME HISTORY</button>
     <button class="btn w-full" onclick="showScreen('s-notes')">PATCH NOTES</button>
   </div>
 </div>
 
-<!-- TRACK SELECT -->
-<div id="s-track" class="screen">
-  <div class="text-xl font-bold glow-p mb-3 tracking-widest">TRACK</div>
-  <div id="track-list" class="w-full max-w-sm flex flex-col gap-2 px-1" style="max-height:65vh;overflow-y:auto"></div>
-  <button class="btn mt-5" onclick="showScreen('s-menu')">BACK</button>
+<!-- DISCOGRAPHY -->
+<div id="s-disco" class="screen">
+  <div class="text-xl font-bold glow-p tracking-widest">DISCOGRAPHY</div>
+  <div class="text-xs glow-a mb-3 tracking-widest" style="opacity:0.7">▶ PREVIEW · TAP ROW TO SELECT</div>
+  <div id="track-list" class="w-full max-w-sm flex flex-col gap-2 px-1" style="max-height:62vh;overflow-y:auto"></div>
+  <button class="btn mt-4" onclick="showScreen('s-menu')">BACK</button>
 </div>
 
 <!-- HOW TO PLAY -->
@@ -299,6 +343,11 @@
 <div id="s-notes" class="screen">
   <div class="text-xl font-bold glow-p mb-4 tracking-widest">PATCH NOTES</div>
   <div class="w-full max-w-sm px-1" style="max-height:65vh;overflow-y:auto;">
+    <div class="note-item">
+      <div class="note-ver">v0.0.11</div>
+      <div class="note-date">2026-05-08</div>
+      <div>Track Select replaced with Discography — playlist-style track listing with previews. Tap ▶ on any track to hear an 8-bar preview at 120 BPM (drops straight into the hook). Tap a row to select that track for the next run, or pick RANDOM. Animated equaliser shows currently previewing track.</div>
+    </div>
     <div class="note-item">
       <div class="note-ver">v0.0.10</div>
       <div class="note-date">2026-05-07</div>
@@ -390,7 +439,7 @@
   </div>
 </div>
 
-<div class="footer">GRIDRAVE v0.0.10 &nbsp;·&nbsp; TACTICON STUDIOS</div>
+<div class="footer">GRIDRAVE v0.0.11 &nbsp;·&nbsp; TACTICON STUDIOS</div>
 
 <script>
 // ── CONFIG ───────────────────────────────────────────────
@@ -885,34 +934,113 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (id === 's-rec')   renderRecords();
-  if (id === 's-track') renderTrackList();
+  if (id === 's-disco') renderTrackList();
+  if (id !== 's-disco') stopPreview();
 }
 
 function renderTrackList() {
   const el = document.getElementById('track-list');
   el.innerHTML = '';
-  const items = [{id:'random', artist:'', title:'RANDOM', style:'PICK ANY EACH RUN', color:'#ffffff'}, ...TRACKS];
-  for (const t of items) {
-    const isSel = (t.id === 'random' && trackRandom) || (!trackRandom && TRACKS[trackIdx] && TRACKS[trackIdx].id === t.id);
+  // Random row first
+  const randSel = trackRandom;
+  const randRow = document.createElement('div');
+  randRow.className = 'track-row' + (randSel ? ' selected' : '');
+  randRow.style.borderColor = '#ffffff';
+  randRow.style.color = '#ffffff';
+  randRow.innerHTML = `
+    <div class="track-num">★</div>
+    <div class="track-meta">
+      <div class="track-title">RANDOM</div>
+      <div class="track-style">PICK ANY EACH RUN</div>
+    </div>
+    <div class="track-check">${randSel ? '✓' : ''}</div>
+  `;
+  randRow.onclick = () => { trackRandom = true; renderTrackList(); };
+  el.appendChild(randRow);
+
+  // Track rows
+  TRACKS.forEach((t, i) => {
+    const isSel = !trackRandom && trackIdx === i;
+    const isPlaying = preview.active && preview.trackId === t.id;
     const row = document.createElement('div');
-    row.className = 'track-row' + (isSel ? ' selected' : '');
+    row.className = 'track-row' + (isSel ? ' selected' : '') + (isPlaying ? ' playing' : '');
     row.style.borderColor = t.color;
     row.style.color = t.color;
+    const num = String(i + 1).padStart(2, '0');
+    const playGlyph = isPlaying
+      ? '<span class="eq"><span></span><span></span><span></span></span>'
+      : '▶';
     row.innerHTML = `
+      <div class="track-num">${num}</div>
+      <button class="track-play" data-pv="${t.id}">${playGlyph}</button>
       <div class="track-meta">
-        ${t.artist ? `<div class="track-artist">${t.artist}</div>` : ''}
+        <div class="track-artist">${t.artist}</div>
         <div class="track-title">${t.title}</div>
         <div class="track-style">${t.style}</div>
       </div>
-      ${isSel ? '<div class="track-check">✓</div>' : ''}
+      <div class="track-check">${isSel ? '✓' : ''}</div>
     `;
-    row.onclick = () => {
-      if (t.id === 'random') trackRandom = true;
-      else { trackRandom = false; trackIdx = TRACKS.findIndex(x => x.id === t.id); }
+    row.onclick = (e) => {
+      // play button toggles preview
+      if (e.target.closest('.track-play')) {
+        togglePreview(t);
+        return;
+      }
+      trackRandom = false;
+      trackIdx = i;
       renderTrackList();
     };
     el.appendChild(row);
+  });
+}
+
+// ── PREVIEW ENGINE ───────────────────────────────────────
+let preview = { active:false, trackId:null, timer:null, step:0, bar:0 };
+const PREVIEW_BPM  = 120;
+const PREVIEW_BARS = 8;
+
+function togglePreview(track) {
+  if (preview.active && preview.trackId === track.id) { stopPreview(); return; }
+  if (preview.active) stopPreview();
+  audio();
+  preview.active  = true;
+  preview.trackId = track.id;
+  preview.step    = 0;
+  preview.bar     = 0;
+  schedulePreviewBeat(track);
+  renderTrackList();
+}
+
+function schedulePreviewBeat(track) {
+  if (!preview.active) return;
+  const beatDurMs = 60000 / PREVIEW_BPM;
+  const stepDur = (beatDurMs / 4) / 1000;
+  const audioStart = actx.currentTime + 0.04;
+  for (let s = 0; s < 4; s++) {
+    const when = audioStart + s * stepDur;
+    const stepIdx = preview.step + s;
+    const stepInBar = stepIdx % 16;
+    const bar = preview.bar;
+    const rootHz = track.prog[bar % track.prog.length];
+    track.drum(when, stepInBar, 3);
+    track.bass(when, stepInBar, rootHz, 3);
+    track.lead(when, stepInBar, rootHz, 3, bar);
   }
+  preview.step += 4;
+  if (preview.step % 16 === 0) preview.bar++;
+  if (preview.bar >= PREVIEW_BARS) { stopPreview(); return; }
+  preview.timer = setTimeout(() => schedulePreviewBeat(track), beatDurMs);
+}
+
+function stopPreview() {
+  const wasActive = preview.active;
+  preview.active = false;
+  preview.trackId = null;
+  if (preview.timer) clearTimeout(preview.timer);
+  preview.timer = null;
+  preview.step = 0;
+  preview.bar = 0;
+  if (wasActive && document.getElementById('s-disco').classList.contains('active')) renderTrackList();
 }
 
 function showNowPlaying() {
