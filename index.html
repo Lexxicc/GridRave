@@ -230,6 +230,11 @@
   <div class="text-xl font-bold glow-p mb-4 tracking-widest">PATCH NOTES</div>
   <div class="w-full max-w-sm px-1" style="max-height:65vh;overflow-y:auto;">
     <div class="note-item">
+      <div class="note-ver">v0.0.03</div>
+      <div class="note-date">2026-05-07</div>
+      <div>Halved BPM ramp rate — BPM_PER_LEVEL reduced from 8 to 4, music now takes roughly twice as long to reach max tempo.</div>
+    </div>
+    <div class="note-item">
       <div class="note-ver">v0.0.02</div>
       <div class="note-date">2026-05-07</div>
       <div>Renamed Records screen to Game History. Pre-lights starting tile during count-in, count-in starts immediately, click sound replaces kick during countdown.</div>
@@ -285,7 +290,7 @@
   </div>
 </div>
 
-<div class="footer">GRIDRAVE v0.0.02 &nbsp;·&nbsp; TACTICON STUDIOS</div>
+<div class="footer">GRIDRAVE v0.0.03 &nbsp;·&nbsp; TACTICON STUDIOS</div>
 
 <script>
 // ── CONFIG ───────────────────────────────────────────────
@@ -297,7 +302,7 @@ const DANGER_CHANCE = 0.12;
 const MAX_ACTIVE    = 5;
 const BASE_BPM      = 90;
 const MAX_BPM       = 160;
-const BPM_PER_LEVEL = 8;
+const BPM_PER_LEVEL = 4;
 const HITS_PER_LVL  = 10;
 const DROP_DUR      = 4000;
 const DORIAN        = [261.63, 293.66, 311.13, 349.23, 392.00, 440.00, 466.16, 523.25];
