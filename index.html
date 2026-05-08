@@ -109,32 +109,6 @@
     100% { background: #0e0016; }
   }
 
-  #drop-overlay {
-    position: fixed; inset: 0; pointer-events: none; z-index: 900;
-    opacity: 0; transition: opacity 0.4s;
-  }
-  #drop-overlay.on {
-    opacity: 1;
-    animation: dropbg 0.6s ease-in-out infinite alternate;
-  }
-  @keyframes dropbg {
-    from { background: radial-gradient(ellipse at center, rgba(255,0,255,0.07) 0%, transparent 70%); }
-    to   { background: radial-gradient(ellipse at center, rgba(0,238,255,0.09) 0%, transparent 70%); }
-  }
-
-  #drop-banner {
-    position: fixed; top: 12%; left: 50%; transform: translateX(-50%);
-    z-index: 950; display: none;
-    font-size: clamp(1.2rem, 5vw, 1.8rem); font-weight: bold; letter-spacing: 0.25em;
-    color: var(--warn); text-shadow: 0 0 20px var(--warn), 0 0 50px var(--warn);
-    animation: bannerin 0.25s ease-out;
-    white-space: nowrap;
-  }
-  @keyframes bannerin {
-    from { transform: translateX(-50%) scale(1.6); opacity: 0; }
-    to   { transform: translateX(-50%) scale(1);   opacity: 1; }
-  }
-
   #count-in {
     position: fixed; inset: 0; z-index: 980;
     display: none; align-items: center; justify-content: center; pointer-events: none;
@@ -174,6 +148,27 @@
 
   #combo-track { width: 100%; height: 4px; background: #1a0026; border-radius: 2px; overflow: hidden; }
   #combo-fill  { height: 100%; width: 0%; background: var(--warn); box-shadow: 0 0 6px var(--warn); transition: width 0.18s; }
+  #song-track { width: 100%; height: 3px; background: #0c0018; border-radius: 2px; overflow: hidden; }
+  #song-fill  { height: 100%; width: 0%; background: var(--accent); box-shadow: 0 0 6px var(--accent); transition: width 0.25s linear; }
+  #section-banner {
+    position: fixed; top: 18%; left: 50%; transform: translateX(-50%);
+    z-index: 940;
+    font-size: clamp(1.6rem, 7vw, 2.4rem);
+    font-weight: bold; letter-spacing: 0.3em;
+    color: var(--accent); text-shadow: 0 0 18px var(--accent), 0 0 40px var(--accent);
+    opacity: 0;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  #section-banner.on {
+    animation: secbanner 1.4s ease-out forwards;
+  }
+  @keyframes secbanner {
+    0%   { opacity: 0; transform: translateX(-50%) scale(1.6); }
+    20%  { opacity: 1; transform: translateX(-50%) scale(1); }
+    80%  { opacity: 1; }
+    100% { opacity: 0; transform: translateX(-50%) scale(0.95); }
+  }
 
   .how-scroll { max-height: 58vh; overflow-y: auto; text-align: left; font-size: 0.82rem; line-height: 1.75; color: #bbb; }
   .how-scroll h3 { color: var(--primary); text-shadow: 0 0 8px var(--primary); margin: 0.9rem 0 0.2rem; font-size: 0.85rem; letter-spacing: 0.1em; }
@@ -281,8 +276,6 @@
 </head>
 <body>
 
-<div id="drop-overlay"></div>
-<div id="drop-banner">⚡ BEAT DROP ⚡</div>
 <div id="count-in"><span id="count-num"></span></div>
 <div id="np-banner"></div>
 
@@ -315,19 +308,19 @@
   <div class="text-xl font-bold glow-p mb-3 tracking-widest">HOW TO PLAY</div>
   <div class="how-scroll w-full max-w-sm px-1">
     <h3>THE GRID</h3>
-    <p>A 4×4 grid of pads lights up in time to the beat. Tap lit pads before they expire to score. Miss a lit pad — lose a life.</p>
+    <p>A 4×4 grid of pads lights up in time to the beat. Tap each lit pad in time to score.</p>
+    <h3>RUN A SONG</h3>
+    <p>Each game plays one full track — INTRO, VERSE, BUILD, DROP, BREAK, BUILD, DROP, OUTRO. The game ends when the song ends. No lives — just play through.</p>
     <h3>DANGER PADS</h3>
-    <p>Red glowing pads are traps. Do NOT tap them. Tap a danger pad and you lose a life. Let them expire on their own — nothing happens.</p>
+    <p>Red glowing pads are traps. Do NOT tap them. Tap a danger pad and your combo resets. Let them expire on their own — nothing happens.</p>
+    <h3>MISSED BEATS</h3>
+    <p>Miss a lit pad and it just fades. No life penalty, but your combo breaks and the miss is added to your tally for the run.</p>
     <h3>COMBO MULTIPLIER</h3>
-    <p>Hit pads consecutively to build your multiplier (×1 → ×5). Miss or tap danger and it resets to ×1.</p>
+    <p>Hit pads consecutively to build your multiplier (×1 → ×5). Miss a pad or tap danger and it resets to ×1.</p>
     <h3>SCORING</h3>
-    <p>Each hit = 10 pts × your current multiplier. Max combo hit = 50 pts.</p>
-    <h3>LEVELS</h3>
-    <p>Every 10 hits the BPM rises and pads expire faster. There is no ceiling — survive as long as possible.</p>
-    <h3>⚡ BEAT DROP</h3>
-    <p>Every 16 bars the Beat Drop fires for 4 seconds — locked to the BPM. No life penalty during the drop — tap everything and score freely.</p>
-    <h3>LIVES</h3>
-    <p>3 lives. All gone — game over.</p>
+    <p>Each hit = 10 pts × your current multiplier. Max combo hit = 50 pts. Final accuracy = hits / (hits + missed).</p>
+    <h3>SECTIONS</h3>
+    <p>Pad density tracks the song. Sparse in the intro and outro, building through verses, peak in the drops, breathing room in the breakdown.</p>
   </div>
   <button class="btn mt-5" onclick="showScreen('s-menu')">BACK</button>
 </div>
@@ -343,6 +336,11 @@
 <div id="s-notes" class="screen">
   <div class="text-xl font-bold glow-p mb-4 tracking-widest">PATCH NOTES</div>
   <div class="w-full max-w-sm px-1" style="max-height:65vh;overflow-y:auto;">
+    <div class="note-item">
+      <div class="note-ver">v0.0.12</div>
+      <div class="note-date">2026-05-08</div>
+      <div>Songs now play as proper structured tracks: INTRO 4 → VERSE 8 → BUILD 4 → DROP 8 → BREAK 8 → BUILD 4 → DROP 16 → OUTRO 4, no looping. Game ends when the song ends; master bus fades over the outro. Each track has its own fixed BPM (no more level-based ramp). Lives removed — missed pads just fade and break combo, plus a MISSED counter is tracked. Pad spawn density is section-aware (none in intro/outro, sparse in break, peak in drop). Section name banner pops on each section change. Song progress bar in the HUD. Result screen now shows accuracy %. Early taps on a pending pad (during the dot phase) count as a full hit. HELIOS gets a 32nd-note hi-hat layer during drops. Audio scheduler bumped to 32nd-note resolution. Danger pads temporarily disabled while the run feel settles in.</div>
+    </div>
     <div class="note-item">
       <div class="note-ver">v0.0.11</div>
       <div class="note-date">2026-05-08</div>
@@ -412,17 +410,20 @@
         <div id="bpm-val" class="text-xs mt-1" style="color:#444">90 BPM</div>
       </div>
       <div class="text-right">
-        <div class="text-xs tracking-widest mb-1" style="color:#444">LIVES</div>
-        <div id="lives-val"></div>
+        <div class="text-xs tracking-widest" style="color:#444">MISSED</div>
+        <div id="missed-val" class="font-bold glow-d" style="font-size:1.2rem;line-height:1">0</div>
       </div>
     </div>
     <div class="flex justify-between items-center mb-1">
       <div class="text-xs" style="color:var(--warn)">COMBO <span id="combo-val" class="font-bold">×1</span></div>
       <div class="text-xs" style="color:#444">LVL <span id="level-val" class="font-bold text-white">1</span></div>
-      <div id="drop-label" class="text-xs font-bold glow-w" style="min-width:60px;text-align:right"></div>
     </div>
     <div id="combo-track"><div id="combo-fill"></div></div>
+    <div id="song-track" class="mt-1"><div id="song-fill"></div></div>
   </div>
+
+  <!-- SECTION BANNER -->
+  <div id="section-banner"></div>
 
   <!-- GRID -->
   <div id="grid"></div>
@@ -439,7 +440,7 @@
   </div>
 </div>
 
-<div class="footer">GRIDRAVE v0.0.11 &nbsp;·&nbsp; TACTICON STUDIOS</div>
+<div class="footer">GRIDRAVE v0.0.12 &nbsp;·&nbsp; TACTICON STUDIOS</div>
 
 <script>
 // ── CONFIG ───────────────────────────────────────────────
@@ -447,20 +448,17 @@ const STORAGE_KEY   = 'GR_stats';
 (function(){if(localStorage.getItem('WIPE_PLAYER_HISTORY')){localStorage.removeItem(STORAGE_KEY);localStorage.removeItem('WIPE_PLAYER_HISTORY');}})();
 const PAD_COLORS    = ['#ff00ff','#00eeff','#ffee00','#00ff88','#ff6600','#cc33ff','#ff3399','#33ffcc'];
 const DANGER_COLOR  = '#ff1133';
-const DANGER_CHANCE = 0.12;
+const DANGER_CHANCE = 0;  // disabled while user gets a handle on the game; raise to re-enable danger pads
 const MAX_ACTIVE    = 5;
-const BASE_BPM      = 80;
-const MAX_BPM       = 160;
-const BPM_PER_LEVEL = 4;
+const BASE_BPM      = 120;  // fallback only — each track has its own bpm
 const HITS_PER_LVL  = 10;
-const DROP_DUR      = 4000;
 
 // ── STATE ────────────────────────────────────────────────
 let actx = null;
 let pads = [];
-let score, lives, combo, level, hits, bestCombo;
+let score, combo, level, hits, missed, bestCombo;
 let running = false, dropping = false;
-let beatIv = null, dropEndTo = null;
+let beatIv = null;
 let t0 = 0, beatCount = 0, nextBeatAbsTime = 0;
 
 // ── AUDIO ENGINE ─────────────────────────────────────────
@@ -620,99 +618,123 @@ function BELL(when, p) {
 }
 
 // ── TRACK DEFINITIONS ────────────────────────────────────
-// Each track defines drum/bass/lead voicing functions + chord progression.
-// Section structure (32-bar phrase): INTRO 4 → VERSE 4 → BUILD 4 → DROP 8 → BREAK 4 → DROP 8 → loop.
-// intensity: 0=intro, 1=verse, 2=build, 3=drop, 4=break.
-const SECTIONS = [
-  { name:'INTRO', bars:4, intensity:0 },
-  { name:'VERSE', bars:4, intensity:1 },
-  { name:'BUILD', bars:4, intensity:2 },
-  { name:'DROP',  bars:8, intensity:3 },
-  { name:'BREAK', bars:4, intensity:4 },
-  { name:'DROP',  bars:8, intensity:3 }
+// Each track defines drum/bass/lead voicing functions + chord progression + fixed BPM.
+// Song structure (one full song, 56 bars, no loop):
+//   INTRO 4 → VERSE 8 → BUILD 4 → DROP 8 → BREAK 8 → BUILD 4 → DROP 16 → OUTRO 4
+// intensity: 0=intro, 1=verse, 2=build, 3=drop, 4=break, 5=outro
+const SONG = [
+  { name:'INTRO', bars:4,  intensity:0 },
+  { name:'VERSE', bars:8,  intensity:1 },
+  { name:'BUILD', bars:4,  intensity:2 },
+  { name:'DROP',  bars:8,  intensity:3 },
+  { name:'BREAK', bars:8,  intensity:4 },
+  { name:'BUILD', bars:4,  intensity:2 },
+  { name:'DROP',  bars:16, intensity:3 },
+  { name:'OUTRO', bars:4,  intensity:5 }
 ];
-const PHRASE_BARS = 32;
+const SONG_BARS = SONG.reduce((s, x) => s + x.bars, 0);
 
-function getSection(barInPhrase) {
+function getSection(bar) {
   let n = 0;
-  for (const s of SECTIONS) {
-    if (barInPhrase < n + s.bars) return s;
+  for (const s of SONG) {
+    if (bar < n + s.bars) return s;
     n += s.bars;
   }
-  return SECTIONS[SECTIONS.length-1];
+  return null;
+}
+function getSectionStartBar(targetSec) {
+  let n = 0;
+  for (const s of SONG) {
+    if (s === targetSec) return n;
+    n += s.bars;
+  }
+  return 0;
 }
 
+// step is 0..31 — 32nd-note position within a bar.
 const TRACKS = [
   // 1. HELIOS — festival big-room anthem
   {
     id:'helios', artist:'NXVØS', title:'HELIOS', style:'BIG ROOM EDM', color:'#ff00ff',
-    key:220, prog:[220, 174.61, 261.63, 196],
+    bpm:128, key:220, prog:[220, 174.61, 261.63, 196],
     drum(when, step, ints) {
-      if (step % 4 === 0 && ints >= 1) K(when, {f:150, drop:42, vol:0.95, dur:0.2, click:0.18});
-      if (ints === 0 && (step===0||step===8)) K(when, {f:140, drop:40, vol:0.7});
-      if (ints >= 1 && step % 4 === 2) H(when, {vol:0.15, hp:9000});
-      if (ints >= 2 && step % 2 === 1) H(when, {vol:0.1, hp:9500});
-      if (ints >= 3 && step === 14) H(when, {vol:0.18, open:1, hp:8000});
-      if (ints >= 1 && (step===4||step===12)) CL(when, {vol:0.32});
-      if (ints === 2 && step % 2 === 0) S(when, {tone:240, vol:0.25 + (step/16)*0.25, dur:0.08});
+      if (ints === 0 && (step === 0 || step === 16)) K(when, {f:140, drop:40, vol:0.7});
+      if (ints >= 1 && step % 8 === 0) K(when, {f:150, drop:42, vol:0.95, dur:0.2, click:0.18});
+      if (ints >= 1 && step % 8 === 4) H(when, {vol:0.15, hp:9000});
+      if (ints >= 2 && step % 4 === 2) H(when, {vol:0.1, hp:9500});
+      if (ints >= 3 && step % 2 === 1) H(when, {vol:0.06, hp:10500, dur:0.025});
+      if (ints >= 3 && step === 28) H(when, {vol:0.18, open:1, hp:8000});
+      if (ints >= 1 && (step === 8 || step === 24)) CL(when, {vol:0.32});
+      if (ints === 2 && step % 4 === 0) S(when, {tone:240, vol:0.22 + (step/32)*0.3, dur:0.08});
+      if (ints === 5 && step === 0) K(when, {f:140, drop:40, vol:0.45});
     },
     bass(when, step, rootHz, ints) {
-      if (ints === 0) return;
-      if (step % 2 === 0) {
+      if (ints === 0 || ints === 5) return;
+      if (step % 4 === 0) {
         const f = rootHz/4;
         B(when, {f, type:'sawtooth', vol:0.45, dur:0.18, lp:650});
         B(when, {f, type:'square',   vol:0.12, dur:0.18, lp:600});
       }
     },
     lead(when, step, rootHz, ints, bar) {
-      if (ints < 3 && ints !== 4) return;
+      if (ints === 5) {
+        if (step === 0 && bar % 2 === 0) CHORD(when, [rootHz, rootHz*1.5, rootHz*2], {vol:0.1, dur:1.6, voices:3, spread:18, attack:0.12});
+        return;
+      }
+      if (ints === 4) {
+        if (step === 0) CHORD(when, [rootHz, rootHz*1.5, rootHz*2], {vol:0.14, dur:1.2, voices:3, spread:18, attack:0.05});
+        return;
+      }
+      if (ints !== 3) return;
       const motif = [0, 7, 12, 7, 0, 7, 12, 14];
-      if (step % 2 === 0) {
-        const idx = ((bar*8) + step/2) % motif.length;
+      if (step % 4 === 0) {
+        const idx = ((bar*8) + step/4) % motif.length;
         const semi = motif[idx];
         const f = (rootHz*2) * Math.pow(2, semi/12);
-        if (ints === 4) {
-          if (step === 0) CHORD(when, [rootHz, rootHz*1.5, rootHz*2], {vol:0.14, dur:1.2, voices:3, spread:18, attack:0.05});
-        } else {
-          L(when, {f, type:'sawtooth', vol:0.22, dur:0.22, lp:5500, detune:-12});
-          L(when, {f, type:'sawtooth', vol:0.18, dur:0.22, lp:5500, detune:12});
-          L(when, {f:f*0.5, type:'square', vol:0.08, dur:0.22, lp:3500});
-        }
+        L(when, {f, type:'sawtooth', vol:0.22, dur:0.22, lp:5500, detune:-12});
+        L(when, {f, type:'sawtooth', vol:0.18, dur:0.22, lp:5500, detune:12});
+        L(when, {f:f*0.5, type:'square', vol:0.08, dur:0.22, lp:3500});
       }
     }
   },
   // 2. SUBTERRANEAN — melodic dubstep / future bass
   {
     id:'subterranean', artist:'KILO ZERO', title:'SUBTERRANEAN', style:'MELODIC DUBSTEP', color:'#00eeff',
-    key:185, prog:[185, 146.83, 220, 164.81],
+    bpm:140, key:185, prog:[185, 146.83, 220, 164.81],
     drum(when, step, ints) {
-      if (ints >= 1 && step === 0) K(when, {f:130, drop:35, vol:0.95, dur:0.22, click:0.1});
-      if (ints >= 1 && step === 8) S(when, {tone:200, vol:0.55, dur:0.18, hp:1200});
+      if (ints >= 1 && step === 0)  K(when, {f:130, drop:35, vol:0.95, dur:0.22, click:0.1});
+      if (ints >= 1 && step === 16) S(when, {tone:200, vol:0.55, dur:0.18, hp:1200});
       if (ints === 0 && step === 0) K(when, {f:120, drop:30, vol:0.7, dur:0.22});
-      if (ints >= 2 && step % 2 === 1) H(when, {vol:0.13, hp:9000});
-      if (ints >= 3 && step % 4 === 3) H(when, {vol:0.16, hp:8500});
-      if (ints === 3 && step === 6) S(when, {tone:240, vol:0.18, dur:0.06, hp:2000});
-      if (ints === 3 && step === 14) S(when, {tone:240, vol:0.22, dur:0.07, hp:2000});
-      if (ints === 2 && step % 2 === 0) S(when, {tone:230, vol:0.2 + (step/16)*0.3, dur:0.08, hp:1600});
+      if (ints >= 2 && step % 4 === 2) H(when, {vol:0.13, hp:9000});
+      if (ints >= 3 && step % 8 === 6) H(when, {vol:0.16, hp:8500});
+      if (ints === 3 && step === 12) S(when, {tone:240, vol:0.18, dur:0.06, hp:2000});
+      if (ints === 3 && step === 28) S(when, {tone:240, vol:0.22, dur:0.07, hp:2000});
+      if (ints === 2 && step % 4 === 0) S(when, {tone:230, vol:0.2 + (step/32)*0.3, dur:0.08, hp:1600});
+      if (ints === 5 && step === 0) K(when, {f:120, drop:30, vol:0.4});
     },
     bass(when, step, rootHz, ints) {
-      if (ints === 0) return;
-      if (step % 4 === 0) {
+      if (ints === 0 || ints === 5) return;
+      if (step % 8 === 0) {
         B(when, {f: rootHz/4, type:'sawtooth', vol:0.5, dur:0.4, lp:400+ints*200});
         B(when, {f: rootHz/4*1.01, type:'sawtooth', vol:0.3, dur:0.4, lp:400+ints*200});
       }
-      if (ints >= 3 && (step===6 || step===10)) {
+      if (ints >= 3 && (step === 12 || step === 20)) {
         B(when, {f: rootHz/4, type:'square', vol:0.35, dur:0.18, lp:800});
       }
     },
     lead(when, step, rootHz, ints, bar) {
-      if (ints === 4 && step === 0) {
-        CHORD(when, [rootHz, rootHz*1.2, rootHz*1.5], {vol:0.14, dur:1.5, voices:3, spread:20, lp:3000, attack:0.05});
+      if (ints === 5) {
+        if (step === 0 && bar % 2 === 0) CHORD(when, [rootHz, rootHz*1.2, rootHz*1.5], {vol:0.1, dur:1.8, voices:3, spread:20, lp:3000, attack:0.12});
+        return;
+      }
+      if (ints === 4) {
+        if (step === 0) CHORD(when, [rootHz, rootHz*1.2, rootHz*1.5], {vol:0.14, dur:1.5, voices:3, spread:20, lp:3000, attack:0.05});
+        return;
       }
       if (ints !== 3) return;
       const pent = [0, 3, 5, 7, 10, 12];
-      if (step % 4 === 0) {
-        const semi = pent[(bar*4 + step/4) % pent.length];
+      if (step % 8 === 0) {
+        const semi = pent[(bar*4 + step/8) % pent.length];
         const f = (rootHz*2) * Math.pow(2, semi/12);
         L(when, {f, type:'triangle', vol:0.25, dur:0.45, lp:5000});
         BELL(when, {f:f*2, vol:0.12, dur:0.5});
@@ -722,109 +744,126 @@ const TRACKS = [
   // 3. NEON HEART — synthwave / retrowave
   {
     id:'neonheart', artist:'RUBY OKTANE', title:'NEON HEART', style:'SYNTHWAVE', color:'#ff3399',
-    key:146.83, prog:[146.83, 116.54, 174.61, 196],
+    bpm:118, key:146.83, prog:[146.83, 116.54, 174.61, 196],
     drum(when, step, ints) {
-      if (ints >= 1 && step % 4 === 0) K(when, {f:135, drop:42, vol:0.85, dur:0.16, click:0.12});
-      if (ints === 0 && (step===0||step===8)) K(when, {f:130, drop:40, vol:0.65, dur:0.18});
-      if (ints >= 1 && (step===4||step===12)) S(when, {tone:220, vol:0.4, dur:0.1, hp:1800});
-      if (ints >= 2 && step % 2 === 1) H(when, {vol:0.13, hp:9500});
-      if (ints >= 3 && step === 14) H(when, {vol:0.2, open:1, hp:8500});
-      if (ints === 2 && step >= 8 && step % 2 === 0) {
-        K(when, {f:200 - (step-8)*15, drop:80, vol:0.45, dur:0.12});
+      if (ints >= 1 && step % 8 === 0) K(when, {f:135, drop:42, vol:0.85, dur:0.16, click:0.12});
+      if (ints === 0 && (step === 0 || step === 16)) K(when, {f:130, drop:40, vol:0.65, dur:0.18});
+      if (ints >= 1 && (step === 8 || step === 24)) S(when, {tone:220, vol:0.4, dur:0.1, hp:1800});
+      if (ints >= 2 && step % 4 === 2) H(when, {vol:0.13, hp:9500});
+      if (ints >= 3 && step === 28) H(when, {vol:0.2, open:1, hp:8500});
+      if (ints === 2 && step >= 16 && step % 4 === 0) {
+        K(when, {f:200 - (step - 16) * 7.5, drop:80, vol:0.45, dur:0.12});
       }
+      if (ints === 5 && step === 0) K(when, {f:130, drop:38, vol:0.4});
     },
     bass(when, step, rootHz, ints) {
-      if (ints === 0) return;
-      if (step % 2 === 0) {
-        const oct = step % 4 === 0 ? 0.5 : 1;
+      if (ints === 0 || ints === 5) return;
+      if (step % 4 === 0) {
+        const oct = step % 8 === 0 ? 0.5 : 1;
         B(when, {f: (rootHz/4)*oct, type:'sawtooth', vol:0.42, dur:0.18, lp:900});
         B(when, {f: (rootHz/4)*oct, type:'square',   vol:0.1, dur:0.18, lp:800});
       }
     },
     lead(when, step, rootHz, ints, bar) {
-      if (ints < 3 && ints !== 4) return;
+      if (ints === 5) {
+        if (step === 0 && bar % 2 === 0) CHORD(when, [rootHz, rootHz*1.25, rootHz*1.5], {vol:0.1, dur:1.6, voices:3, spread:8, lp:2800, attack:0.12});
+        return;
+      }
+      if (ints === 4) {
+        if (step === 0) CHORD(when, [rootHz, rootHz*1.25, rootHz*1.5], {vol:0.14, dur:0.6, voices:3, spread:8, lp:3000, attack:0.05});
+        return;
+      }
+      if (ints !== 3) return;
       const motif = [0, 5, 7, 12, 7, 5, 0, -5];
-      if (step % 2 === 0) {
-        const idx = (bar*8 + step/2) % motif.length;
+      if (step % 4 === 0) {
+        const idx = (bar*8 + step/4) % motif.length;
         const semi = motif[idx];
         const f = (rootHz*2) * Math.pow(2, semi/12);
-        if (ints === 4) {
-          if (step === 0) CHORD(when, [rootHz, rootHz*1.25, rootHz*1.5], {vol:0.14, dur:0.6, voices:3, spread:8, lp:3000, attack:0.05});
-        } else {
-          L(when, {f, type:'sawtooth', vol:0.22, dur:0.24, lp:4500, detune:-7});
-          L(when, {f, type:'sawtooth', vol:0.20, dur:0.24, lp:4500, detune:7});
-          if (step === 0 && bar%2 === 0) BELL(when, {f:f*2, vol:0.14, dur:0.4});
-        }
+        L(when, {f, type:'sawtooth', vol:0.22, dur:0.24, lp:4500, detune:-7});
+        L(when, {f, type:'sawtooth', vol:0.20, dur:0.24, lp:4500, detune:7});
+        if (step === 0 && bar % 2 === 0) BELL(when, {f:f*2, vol:0.14, dur:0.4});
       }
     }
   },
   // 4. TRENCH — driving techno
   {
     id:'trench', artist:'VOID SECTOR', title:'TRENCH', style:'DRIVING TECHNO', color:'#00ff88',
-    key:138.59, prog:[138.59, 207.65, 184.99, 233.08],
+    bpm:130, key:138.59, prog:[138.59, 207.65, 184.99, 233.08],
     drum(when, step, ints) {
-      if (ints >= 1 && step % 4 === 0) K(when, {f:120, drop:38, vol:1.0, dur:0.22, click:0.2});
-      if (ints === 0 && step % 4 === 0) K(when, {f:115, drop:35, vol:0.7, dur:0.22});
-      if (ints >= 1 && (step===4||step===12)) CL(when, {vol:0.28});
-      if (ints >= 1 && step % 2 === 1) H(when, {vol:0.14, hp:9500});
-      if (ints >= 3 && step === 6) H(when, {vol:0.22, open:1, hp:7500});
-      if (ints === 2 && step % 2 === 0) S(when, {tone:280, vol:0.18 + (step/16)*0.32, dur:0.07, hp:2000});
+      if (ints >= 1 && step % 8 === 0) K(when, {f:120, drop:38, vol:1.0, dur:0.22, click:0.2});
+      if (ints === 0 && step % 8 === 0) K(when, {f:115, drop:35, vol:0.7, dur:0.22});
+      if (ints >= 1 && (step === 8 || step === 24)) CL(when, {vol:0.28});
+      if (ints >= 1 && step % 4 === 2) H(when, {vol:0.14, hp:9500});
+      if (ints >= 3 && step === 12) H(when, {vol:0.22, open:1, hp:7500});
+      if (ints === 2 && step % 4 === 0) S(when, {tone:280, vol:0.18 + (step/32)*0.32, dur:0.07, hp:2000});
+      if (ints === 5 && step % 8 === 0) K(when, {f:115, drop:35, vol:0.5});
     },
     bass(when, step, rootHz, ints) {
-      if (ints === 0) return;
-      if (step % 2 === 0) {
+      if (ints === 0 || ints === 5) return;
+      if (step % 4 === 0) {
         B(when, {f: rootHz/4, type:'sawtooth', vol:0.4, dur:0.2, lp:500 + ints*150});
         B(when, {f: rootHz/4*0.99, type:'sawtooth', vol:0.32, dur:0.2, lp:500 + ints*150});
         B(when, {f: rootHz/4*1.01, type:'sawtooth', vol:0.28, dur:0.2, lp:500 + ints*150});
       }
     },
     lead(when, step, rootHz, ints, bar) {
-      if (ints !== 3 && ints !== 4) return;
-      if (ints === 4 && step === 0) {
-        CHORD(when, [rootHz, rootHz*1.5, rootHz*2], {vol:0.13, dur:1.0, voices:2, spread:10, lp:2500, attack:0.05});
+      if (ints === 5) {
+        if (step === 0 && bar % 2 === 0) CHORD(when, [rootHz, rootHz*1.5, rootHz*2], {vol:0.09, dur:1.4, voices:2, spread:10, lp:2200, attack:0.12});
+        return;
+      }
+      if (ints === 4) {
+        if (step === 0) CHORD(when, [rootHz, rootHz*1.5, rootHz*2], {vol:0.13, dur:1.0, voices:2, spread:10, lp:2500, attack:0.05});
         return;
       }
       if (ints !== 3) return;
       const arp = [0, 7, 12, 7, 3, 7, 12, 7];
-      const idx = (bar*16 + step) % arp.length;
-      const semi = arp[idx];
-      const f = (rootHz*2) * Math.pow(2, semi/12);
-      L(when, {f, type:'square', vol:0.16, dur:0.13, lp:3500, attack:0.002});
+      if (step % 2 === 0) {
+        const idx = (bar*16 + step/2) % arp.length;
+        const semi = arp[idx];
+        const f = (rootHz*2) * Math.pow(2, semi/12);
+        L(when, {f, type:'square', vol:0.16, dur:0.13, lp:3500, attack:0.002});
+      }
     }
   },
   // 5. SUNDIAL — progressive house
   {
     id:'sundial', artist:'AURA-9', title:'SUNDIAL', style:'PROGRESSIVE HOUSE', color:'#ffaa00',
-    key:164.81, prog:[164.81, 130.81, 196, 146.83],
+    bpm:122, key:164.81, prog:[164.81, 130.81, 196, 146.83],
     drum(when, step, ints) {
-      if (ints >= 1 && step % 4 === 0) K(when, {f:140, drop:40, vol:0.9, dur:0.2, click:0.15});
+      if (ints >= 1 && step % 8 === 0) K(when, {f:140, drop:40, vol:0.9, dur:0.2, click:0.15});
       if (ints === 0 && step === 0) K(when, {f:130, drop:38, vol:0.65, dur:0.2});
-      if (ints >= 1 && (step===4||step===12)) S(when, {tone:230, vol:0.42, dur:0.12, hp:1500});
-      if (ints >= 2 && step % 2 === 1) H(when, {vol:0.13, hp:9200});
-      if (ints >= 3 && step === 14) H(when, {vol:0.2, open:1, hp:8000});
-      if (ints === 2 && step % 2 === 0) S(when, {tone:240, vol:0.2 + (step/16)*0.3, dur:0.08, hp:1800});
+      if (ints >= 1 && (step === 8 || step === 24)) S(when, {tone:230, vol:0.42, dur:0.12, hp:1500});
+      if (ints >= 2 && step % 4 === 2) H(when, {vol:0.13, hp:9200});
+      if (ints >= 3 && step === 28) H(when, {vol:0.2, open:1, hp:8000});
+      if (ints === 2 && step % 4 === 0) S(when, {tone:240, vol:0.2 + (step/32)*0.3, dur:0.08, hp:1800});
+      if (ints === 5 && step === 0) K(when, {f:130, drop:38, vol:0.4});
     },
     bass(when, step, rootHz, ints) {
-      if (ints === 0) return;
-      if (step % 2 === 0) {
+      if (ints === 0 || ints === 5) return;
+      if (step % 4 === 0) {
         B(when, {f: rootHz/4, type:'sine', vol:0.55, dur:0.22, lp:300});
         B(when, {f: rootHz/4, type:'sawtooth', vol:0.18, dur:0.22, lp:600});
       }
     },
     lead(when, step, rootHz, ints, bar) {
-      if (ints < 3 && ints !== 4) return;
-      if (step === 0 && bar % 2 === 0 && ints === 3) {
+      if (ints === 5) {
+        if (step === 0 && bar % 2 === 0) CHORD(when, [rootHz, rootHz*1.2, rootHz*1.5], {vol:0.09, dur:1.8, voices:3, spread:15, lp:2800, attack:0.15});
+        return;
+      }
+      if (ints === 4) {
+        if (step === 0) CHORD(when, [rootHz, rootHz*1.2, rootHz*1.5], {vol:0.13, dur:1.5, voices:3, spread:15, lp:3000, attack:0.1});
+        return;
+      }
+      if (ints !== 3) return;
+      if (step === 0 && bar % 2 === 0) {
         CHORD(when, [rootHz, rootHz*1.2, rootHz*1.5, rootHz*1.78], {vol:0.18, dur:1.2, voices:4, spread:20, lp:5000, attack:0.05});
       }
-      if (ints === 3 && step % 4 === 0) {
+      if (step % 8 === 0) {
         const motif = [0, 7, 12, 7];
-        const semi = motif[(bar*4 + step/4) % motif.length];
+        const semi = motif[(bar*4 + step/8) % motif.length];
         const f = (rootHz*2) * Math.pow(2, semi/12);
         L(when, {f, type:'triangle', vol:0.22, dur:0.35, lp:4500, attack:0.01});
         L(when, {f, type:'sawtooth', vol:0.12, dur:0.35, lp:4500, attack:0.01, detune:7});
-      }
-      if (ints === 4 && step === 0) {
-        CHORD(when, [rootHz, rootHz*1.2, rootHz*1.5], {vol:0.13, dur:1.5, voices:3, spread:15, lp:3000, attack:0.1});
       }
     }
   }
@@ -834,31 +873,72 @@ const TRACKS = [
 let trackIdx = 0;
 let trackRandom = true;
 let curTrack = null;
-let songStep = 0;
-let songBar = 0;
+let songBeat = 0;        // beats elapsed in current song (0 .. SONG_BARS*4)
+let lastSec = null;      // last section, for section-change banner
 
 function pickTrack() {
   if (trackRandom) curTrack = TRACKS[Math.floor(Math.random()*TRACKS.length)];
   else curTrack = TRACKS[trackIdx % TRACKS.length];
 }
-function resetSong() { songStep = 0; songBar = 0; }
+function resetSong() {
+  songBeat = 0;
+  lastSec = null;
+  if (drumBus) drumBus.gain.cancelScheduledValues(actx.currentTime);
+  if (bassBus) bassBus.gain.cancelScheduledValues(actx.currentTime);
+  if (leadBus) leadBus.gain.cancelScheduledValues(actx.currentTime);
+  if (drumBus) drumBus.gain.setValueAtTime(1.0, actx.currentTime);
+  if (bassBus) bassBus.gain.setValueAtTime(0.85, actx.currentTime);
+  if (leadBus) leadBus.gain.setValueAtTime(0.7, actx.currentTime);
+}
 
+// Schedules one beat of audio (8 32nd notes). Returns true if more beats remain.
 function scheduleSongBeat(audioStart) {
-  if (!curTrack) return;
-  const stepDur = (beatMs() / 4) / 1000;
-  for (let s = 0; s < 4; s++) {
+  if (!curTrack) return false;
+  const bar = Math.floor(songBeat / 4);
+  if (bar >= SONG_BARS) return false;
+
+  const sec = getSection(bar);
+  const stepDur = (beatMs() / 8) / 1000;
+  const beatInBar = songBeat % 4;
+  const rootHz = curTrack.prog[bar % curTrack.prog.length];
+
+  for (let s = 0; s < 8; s++) {
     const when = audioStart + s * stepDur;
-    const stepIdx = songStep + s;
-    const stepInBar = stepIdx % 16;
-    const barInPhrase = Math.floor(stepIdx / 16) % PHRASE_BARS;
-    const sec = getSection(barInPhrase);
-    const rootHz = curTrack.prog[barInPhrase % curTrack.prog.length];
+    const stepInBar = beatInBar * 8 + s;
     curTrack.drum(when, stepInBar, sec.intensity);
     curTrack.bass(when, stepInBar, rootHz, sec.intensity);
-    curTrack.lead(when, stepInBar, rootHz, sec.intensity, barInPhrase);
+    curTrack.lead(when, stepInBar, rootHz, sec.intensity, bar);
   }
-  songStep += 4;
-  if (songStep % 16 === 0) songBar++;
+
+  // Section change → banner; first outro beat → start fade
+  if (sec !== lastSec) {
+    showSectionBanner(sec);
+    if (sec.intensity === 5) startOutroFade();
+    lastSec = sec;
+  }
+
+  songBeat++;
+  return true;
+}
+
+function startOutroFade() {
+  if (!actx) return;
+  // Fade drum/bass/lead to silence over the entire OUTRO duration.
+  const outroSec = SONG.find(s => s.intensity === 5);
+  if (!outroSec) return;
+  const fadeSec = (outroSec.bars * 4 * beatMs()) / 1000;
+  const t = actx.currentTime;
+  for (const bus of [drumBus, bassBus, leadBus]) {
+    if (!bus) continue;
+    const cur = bus.gain.value;
+    bus.gain.cancelScheduledValues(t);
+    bus.gain.setValueAtTime(cur, t);
+    bus.gain.linearRampToValueAtTime(0.0001, t + fadeSec);
+  }
+}
+
+function songProgress() {
+  return Math.min(1, songBeat / (SONG_BARS * 4));
 }
 
 // ── ONE-SHOT SFX (preserve old API) ──
@@ -1072,7 +1152,7 @@ function buildGrid() {
 }
 
 // ── BPM HELPERS ──────────────────────────────────────────
-function bpm()      { return Math.min(BASE_BPM + (level - 1) * BPM_PER_LEVEL, MAX_BPM); }
+function bpm()      { return curTrack ? curTrack.bpm : BASE_BPM; }
 function beatMs()   { return Math.round(60000 / bpm()); }
 function padLife()  { return beatMs() * 2; }
 
@@ -1082,13 +1162,11 @@ function startGame() {
   pickTrack();
   resetSong();
   showNowPlaying();
-  score = 0; lives = 3; combo = 1; level = 1; hits = 0; bestCombo = 1;
+  score = 0; combo = 1; level = 1; hits = 0; missed = 0; bestCombo = 1;
   running = true; dropping = false; beatCount = 0; nextBeatAbsTime = 0;
   t0 = Date.now();
 
-  clearTimeout(beatIv); clearTimeout(dropEndTo);
-  document.getElementById('drop-overlay').classList.remove('on');
-  document.getElementById('drop-banner').style.display = 'none';
+  clearTimeout(beatIv);
 
   buildGrid();
   showScreen('s-game');
@@ -1150,15 +1228,27 @@ function onBeat() {
   if (!running) return;
   nextBeatAbsTime += beatMs();
   beatCount++;
-  scheduleSongBeat(actx.currentTime);
+
+  const more = scheduleSongBeat(actx.currentTime);
   pulseDot();
   expireCheck();
-  spawn();
-  if (!dropping && beatCount % 64 === 0) startDrop();
+
+  const bar = Math.floor((songBeat - 1) / 4);
+  const sec = bar >= 0 ? getSection(bar) : null;
+  if (sec) spawn(sec.intensity);
+
+  updateSongProgress();
+
+  if (!more) {
+    // Song complete — let pads still on the grid resolve, then end.
+    setTimeout(() => { if (running) finishSong(); }, beatMs() * 2);
+    return;
+  }
+
   const halfMs = Math.round(beatMs() / 2);
   setTimeout(() => {
     if (!running) return;
-    if (level >= 4 && beatCount > 1 && Math.random() < 0.3) spawn();
+    if (sec && sec.intensity === 3 && Math.random() < 0.35) spawn(sec.intensity);
   }, halfMs);
   scheduleTick();
 }
@@ -1169,12 +1259,18 @@ function pulseDot() {
   setTimeout(() => d.classList.remove('on'), 70);
 }
 
-function spawn() {
+function spawn(ints) {
   if (!running) return;
+  // Section gating: no pads in INTRO (0) or OUTRO (5).
+  if (ints === 0 || ints === 5) return;
+  // VERSE: occasional skip for breathing room. BREAK: very sparse.
+  if (ints === 1 && Math.random() < 0.3) return;
+  if (ints === 4 && Math.random() < 0.7) return;
   const idle = pads.map((p,i) => p.state==='idle' ? i : -1).filter(i => i >= 0);
   const active = pads.filter(p => p.state !== 'idle').length;
   if (active >= MAX_ACTIVE || idle.length === 0) return;
-  const n = Math.min(dropping ? 2 : 1, MAX_ACTIVE - active, idle.length);
+  const cap = ints === 3 ? 2 : 1;
+  const n = Math.min(cap, MAX_ACTIVE - active, idle.length);
   shuffle(idle);
   for (let k = 0; k < n; k++) previewPad(idle[k]);
 }
@@ -1184,6 +1280,7 @@ function previewPad(idx) {
   const danger = !dropping && Math.random() < DANGER_CHANCE;
   const col = danger ? DANGER_COLOR : PAD_COLORS[Math.floor(Math.random() * PAD_COLORS.length)];
   p.state = 'pending';
+  p.willBe = danger ? 'danger' : 'active';
   p.el.style.setProperty('--pad-color', col);
   const dot = document.createElement('div');
   dot.className = 'pad-dot';
@@ -1234,7 +1331,9 @@ function expireCheck() {
   const now = Date.now();
   pads.forEach((p, i) => {
     if (p.state === 'active' && now >= p.expiry) {
-      if (!dropping) { loseLife(); playMiss(); breakCombo(); }
+      missed++;
+      playMiss();
+      breakCombo();
       p.el.classList.add('miss');
       setTimeout(() => deactivate(i), 220);
     } else if (p.state === 'danger' && now >= p.expiry) {
@@ -1247,16 +1346,21 @@ function expireCheck() {
 function tapPad(idx) {
   if (!running) return;
   const p = pads[idx];
-  if (p.state === 'idle' || p.state === 'pending') return;
+  if (p.state === 'idle') return;
 
-  if (p.state === 'danger') {
-    if (!dropping) { playDanger(); loseLife(); breakCombo(); }
+  // Treat pending taps the same as the resolved state — early hits on a normal
+  // pad score full points, early taps on a danger pad still trip the danger.
+  const isDanger = p.state === 'danger' || (p.state === 'pending' && p.willBe === 'danger');
+
+  if (isDanger) {
+    playDanger();
+    breakCombo();
     p.el.classList.add('miss');
     setTimeout(() => deactivate(idx), 220);
     return;
   }
 
-  // Good
+  // Good — pending or active, full points either way
   const pts = 10 * combo;
   score += pts;
   hits++;
@@ -1280,56 +1384,39 @@ function updateCombo() {
 }
 function breakCombo() { combo = 1; updateCombo(); hud(); }
 
-// ── LIVES ────────────────────────────────────────────────
-function loseLife() {
-  if (!running) return;
-  lives = Math.max(0, lives - 1);
-  hud();
-  if (lives <= 0) endGame();
-}
-
-// ── BEAT DROP ────────────────────────────────────────────
-function startDrop() {
-  if (!running) return;
-  dropping = true;
-  playDrop();
-  document.getElementById('drop-overlay').classList.add('on');
-  document.getElementById('drop-banner').style.display = 'block';
-  document.getElementById('drop-label').textContent = '⚡ DROP';
-  clearTimeout(dropEndTo);
-  dropEndTo = setTimeout(endDrop, DROP_DUR);
-}
-function endDrop() {
-  dropping = false;
-  document.getElementById('drop-overlay').classList.remove('on');
-  document.getElementById('drop-banner').style.display = 'none';
-  document.getElementById('drop-label').textContent = '';
-}
-
 // ── HUD ──────────────────────────────────────────────────
 function hud() {
-  document.getElementById('score-val').textContent = score;
-  document.getElementById('level-val').textContent = level;
-  document.getElementById('bpm-val').textContent   = bpm() + ' BPM';
-  document.getElementById('combo-val').textContent = '×' + combo;
-  const lv = document.getElementById('lives-val');
-  lv.innerHTML = '';
-  for (let i = 0; i < 3; i++) {
-    const pip = document.createElement('span');
-    pip.className = 'pip' + (i >= lives ? ' dead' : '');
-    lv.appendChild(pip);
-  }
+  document.getElementById('score-val').textContent  = score;
+  document.getElementById('level-val').textContent  = level;
+  document.getElementById('bpm-val').textContent    = bpm() + ' BPM';
+  document.getElementById('combo-val').textContent  = '×' + combo;
+  document.getElementById('missed-val').textContent = missed;
+}
+
+function updateSongProgress() {
+  const fill = document.getElementById('song-fill');
+  if (fill) fill.style.width = (songProgress() * 100).toFixed(1) + '%';
+}
+
+function showSectionBanner(sec) {
+  const el = document.getElementById('section-banner');
+  if (!el) return;
+  el.textContent = sec.name;
+  el.classList.remove('on');
+  void el.offsetWidth;
+  el.classList.add('on');
+  setTimeout(() => el.classList.remove('on'), 1400);
 }
 
 // ── END ──────────────────────────────────────────────────
-function endGame() {
+function finishSong() {
+  if (!running) return;
   running = false;
-  clearTimeout(beatIv); clearTimeout(dropEndTo);
-  document.getElementById('drop-overlay').classList.remove('on');
-  document.getElementById('drop-banner').style.display = 'none';
-  playGameOver();
+  clearTimeout(beatIv);
 
   const elapsed = Math.round((Date.now() - t0) / 1000);
+  const totalAttempts = hits + missed;
+  const accuracy = totalAttempts > 0 ? Math.round((hits / totalAttempts) * 100) : 0;
   const st = loadStats();
   const newHi = score > st.hi;
   st.hi = Math.max(st.hi, score);
@@ -1339,21 +1426,27 @@ function endGame() {
   st.totalHits += hits;
   saveStats(st);
 
-  document.getElementById('res-title').textContent  = newHi ? 'NEW HIGH SCORE!' : 'GAME OVER';
-  document.getElementById('res-title').className    = newHi ? 'font-bold glow-w mb-1 tracking-widest' : 'font-bold glow-d mb-1 tracking-widest';
+  const trackLine = curTrack ? `${curTrack.artist} — ${curTrack.title}` : '';
+
+  document.getElementById('res-title').textContent  = newHi ? 'NEW HIGH SCORE!' : 'TRACK COMPLETE';
+  document.getElementById('res-title').className    = newHi ? 'font-bold glow-w mb-1 tracking-widest' : 'font-bold glow-a mb-1 tracking-widest';
   document.getElementById('res-title').style.fontSize = '1.6rem';
-  document.getElementById('res-sub').textContent    = newHi ? 'RAVE HARDER, GO FURTHER' : 'FEEL THE BEAT, TRY AGAIN';
+  document.getElementById('res-sub').textContent    = trackLine;
 
   document.getElementById('res-body').innerHTML = `
     <div class="rec-row"><span class="rec-lbl">SCORE</span><span class="rec-val">${score}</span></div>
+    <div class="rec-row"><span class="rec-lbl">ACCURACY</span><span class="rec-val">${accuracy}%</span></div>
+    <div class="rec-row"><span class="rec-lbl">HITS</span><span class="rec-val">${hits}</span></div>
+    <div class="rec-row"><span class="rec-lbl">MISSED</span><span class="rec-val">${missed}</span></div>
     <div class="rec-row"><span class="rec-lbl">BEST COMBO</span><span class="rec-val">×${bestCombo}</span></div>
-    <div class="rec-row"><span class="rec-lbl">LEVEL REACHED</span><span class="rec-val">${level}</span></div>
-    <div class="rec-row"><span class="rec-lbl">TOTAL HITS</span><span class="rec-val">${hits}</span></div>
-    <div class="rec-row"><span class="rec-lbl">TIME SURVIVED</span><span class="rec-val">${elapsed}s</span></div>
+    <div class="rec-row"><span class="rec-lbl">TIME</span><span class="rec-val">${elapsed}s</span></div>
     <div class="rec-row"><span class="rec-lbl">ALL-TIME HIGH</span><span class="rec-val">${st.hi}</span></div>
   `;
   showScreen('s-result');
 }
+
+// Legacy alias — anywhere that still calls endGame() routes to finishSong.
+function endGame() { finishSong(); }
 
 // ── GAME HISTORY SCREEN ───────────────────────────────────────
 function renderRecords() {
