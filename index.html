@@ -272,6 +272,98 @@
   .np-artist { font-size: 0.7rem; opacity: 0.75; letter-spacing: 0.2em; }
   .np-title  { font-size: 1.45rem; font-weight: bold; letter-spacing: 0.14em; margin: 0.15rem 0; text-shadow: 0 0 16px currentColor; }
   .np-style  { font-size: 0.6rem; opacity: 0.55; letter-spacing: 0.22em; }
+
+  /* ── History tabs ── */
+  .hist-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    width: 100%;
+    margin-bottom: 0.6rem;
+    justify-content: center;
+  }
+  .hist-tab {
+    background: transparent;
+    border: 1px solid #444;
+    color: #888;
+    padding: 0.25rem 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .hist-tab.active {
+    color: #000;
+    background: var(--tab-color, var(--accent));
+    border-color: var(--tab-color, var(--accent));
+    box-shadow: 0 0 8px var(--tab-color, var(--accent));
+    font-weight: bold;
+  }
+  .hist-list {
+    width: 100%;
+    max-height: 56vh;
+    overflow-y: auto;
+    padding: 0 2px;
+  }
+  .run-card {
+    border-left: 2px solid var(--run-color, var(--accent));
+    padding: 0.4rem 0.55rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.74rem;
+    background: rgba(255,255,255,0.02);
+    border-radius: 0 4px 4px 0;
+  }
+  .run-track {
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: var(--run-color, var(--accent));
+    letter-spacing: 0.14em;
+    text-shadow: 0 0 6px var(--run-color, var(--accent));
+  }
+  .run-date { font-size: 0.6rem; color: #555; margin-bottom: 0.3rem; letter-spacing: 0.1em; }
+  .run-stats { display: flex; flex-wrap: wrap; gap: 0.6rem; color: #aaa; }
+  .run-stats b { color: #fff; font-weight: bold; }
+  .hist-empty { color: #666; font-size: 0.78rem; padding: 1.4rem 0.5rem; text-align: center; letter-spacing: 0.08em; }
+
+  /* ── Chord mechanic ── */
+  .pad.chord {
+    border-color: var(--pad-color);
+    box-shadow: 0 0 18px var(--pad-color), inset 0 0 22px rgba(255,255,255,0.06);
+    animation: chordpulse 1s ease-in-out infinite alternate;
+  }
+  .pad.chord.held {
+    box-shadow: 0 0 28px var(--pad-color), inset 0 0 30px rgba(255,255,255,0.12);
+    animation: none;
+    transform: scale(0.96);
+  }
+  @keyframes chordpulse {
+    from { box-shadow: 0 0 12px var(--pad-color), inset 0 0 18px rgba(255,255,255,0.03); }
+    to   { box-shadow: 0 0 26px var(--pad-color), inset 0 0 28px rgba(255,255,255,0.10); }
+  }
+  .chord-bar {
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    bottom: 8%;
+    height: 5px;
+    background: rgba(0,0,0,0.55);
+    border-radius: 2px;
+    overflow: hidden;
+    pointer-events: none;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .chord-bar > span {
+    display: block;
+    height: 100%;
+    width: 0%;
+    background: var(--pad-color);
+    box-shadow: 0 0 6px var(--pad-color);
+    transition: width 0.08s linear;
+  }
 </style>
 </head>
 <body>
@@ -327,15 +419,22 @@
 
 <!-- GAME HISTORY -->
 <div id="s-rec" class="screen">
-  <div class="text-xl font-bold glow-a mb-4 tracking-widest">GAME HISTORY</div>
-  <div id="rec-body" class="w-full max-w-xs"></div>
-  <button class="btn btn-a mt-6" onclick="showScreen('s-menu')">BACK</button>
+  <div class="text-xl font-bold glow-a mb-3 tracking-widest">GAME HISTORY</div>
+  <div id="rec-summary" class="w-full max-w-xs mb-2"></div>
+  <div id="rec-tabs" class="hist-tabs w-full max-w-sm"></div>
+  <div id="rec-body" class="hist-list w-full max-w-sm"></div>
+  <button class="btn btn-a mt-4" onclick="showScreen('s-menu')">BACK</button>
 </div>
 
 <!-- PATCH NOTES -->
 <div id="s-notes" class="screen">
   <div class="text-xl font-bold glow-p mb-4 tracking-widest">PATCH NOTES</div>
   <div class="w-full max-w-sm px-1" style="max-height:65vh;overflow-y:auto;">
+    <div class="note-item">
+      <div class="note-ver">v0.0.13</div>
+      <div class="note-date">2026-05-09</div>
+      <div>Per-track game history tabs (ALL + one tab per track, default-active = last-played). Even DROP cadence — 1 spawn per eighth note (every half-beat) instead of 2 paired on every quarter note; same density, smoother feel. BREAK chord-hold mechanic — 2-3 pads spawn together with a hold-progress bar, hold all for 4 beats to score, score = 25 × pads × combo, release any pad mid-hold = miss + combo break.</div>
+    </div>
     <div class="note-item">
       <div class="note-ver">v0.0.12</div>
       <div class="note-date">2026-05-08</div>
@@ -440,7 +539,7 @@
   </div>
 </div>
 
-<div class="footer">GRIDRAVE v0.0.12 &nbsp;·&nbsp; TACTICON STUDIOS</div>
+<div class="footer">GRIDRAVE v0.0.13 &nbsp;·&nbsp; TACTICON STUDIOS</div>
 
 <script>
 // ── CONFIG ───────────────────────────────────────────────
@@ -1003,11 +1102,41 @@ function playGameOver() {
 
 // ── STORAGE ──────────────────────────────────────────────
 function loadStats() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defStats(); }
+  try {
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (!s) return defStats();
+    // Migrate older saves missing the new fields.
+    if (!Array.isArray(s.runs))   s.runs = [];
+    if (typeof s.lastTrack !== 'string') s.lastTrack = '';
+    if (typeof s.hi !== 'number') s.hi = 0;
+    if (typeof s.plays !== 'number') s.plays = 0;
+    if (typeof s.bestTime !== 'number') s.bestTime = 0;
+    if (typeof s.bestCombo !== 'number') s.bestCombo = 0;
+    if (typeof s.totalHits !== 'number') s.totalHits = 0;
+    return s;
+  }
   catch { return defStats(); }
 }
-function defStats() { return { hi: 0, plays: 0, bestTime: 0, bestCombo: 0, totalHits: 0 }; }
+function defStats() { return { hi: 0, plays: 0, bestTime: 0, bestCombo: 0, totalHits: 0, runs: [], lastTrack: '' }; }
 function saveStats(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+const MAX_RUNS_PER_TRACK = 25;
+function recordRun(run) {
+  const s = loadStats();
+  s.runs.push(run);
+  // Keep runs bounded — at most MAX_RUNS_PER_TRACK newest per track.
+  const grouped = {};
+  for (const r of s.runs) {
+    (grouped[r.trackId] = grouped[r.trackId] || []).push(r);
+  }
+  let trimmed = [];
+  for (const id of Object.keys(grouped)) {
+    const arr = grouped[id].sort((a, b) => a.ts - b.ts);
+    trimmed = trimmed.concat(arr.slice(-MAX_RUNS_PER_TRACK));
+  }
+  s.runs = trimmed.sort((a, b) => a.ts - b.ts);
+  s.lastTrack = run.trackId;
+  saveStats(s);
+}
 
 // ── SCREENS ──────────────────────────────────────────────
 function showScreen(id) {
@@ -1145,9 +1274,20 @@ function buildGrid() {
   for (let i = 0; i < 16; i++) {
     const el = document.createElement('div');
     el.className = 'pad';
-    el.addEventListener('pointerdown', e => { e.preventDefault(); tapPad(i); });
+    el.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      // Capture the pointer so we still receive pointerup even if the finger
+      // slides off the pad — important for the chord-hold mechanic.
+      try { el.setPointerCapture(e.pointerId); } catch (_) {}
+      tapPad(i);
+    });
+    // pointerup / pointercancel = real releases. pointerleave is intentionally
+    // NOT bound — with pointer capture in place, sliding a finger off the pad
+    // shouldn't auto-fail a chord hold. Only lifting the finger does.
+    el.addEventListener('pointerup',     e => { e.preventDefault(); chordOnRelease(i); });
+    el.addEventListener('pointercancel', e => { chordOnRelease(i); });
     g.appendChild(el);
-    pads.push({ el, state: 'idle', expiry: 0 });
+    pads.push({ el, state: 'idle', expiry: 0, held: false });
   }
 }
 
@@ -1167,6 +1307,9 @@ function startGame() {
   t0 = Date.now();
 
   clearTimeout(beatIv);
+  // Reset chord state from any previous run.
+  cancelChordRaf();
+  chord = { active:false, pads:[], startedAt:0, beatsHeld:0, awaiting:false, gap:0, rafId:null, finished:false };
 
   buildGrid();
   showScreen('s-game');
@@ -1235,7 +1378,17 @@ function onBeat() {
 
   const bar = Math.floor((songBeat - 1) / 4);
   const sec = bar >= 0 ? getSection(bar) : null;
-  if (sec) spawn(sec.intensity);
+
+  if (sec) {
+    if (sec.intensity === 4) {
+      // BREAK — chord-hold mechanic in place of normal spawns.
+      tickChord();
+    } else {
+      // Section change away from BREAK — clean up any in-flight chord.
+      if (chord.active || chord.gap > 0) clearChord();
+      spawn(sec.intensity);
+    }
+  }
 
   updateSongProgress();
 
@@ -1248,7 +1401,8 @@ function onBeat() {
   const halfMs = Math.round(beatMs() / 2);
   setTimeout(() => {
     if (!running) return;
-    if (sec && sec.intensity === 3 && Math.random() < 0.35) spawn(sec.intensity);
+    // DROP: spawn evenly on the half-beat so density is one signal per eighth note.
+    if (sec && sec.intensity === 3) spawn(sec.intensity);
   }, halfMs);
   scheduleTick();
 }
@@ -1259,18 +1413,215 @@ function pulseDot() {
   setTimeout(() => d.classList.remove('on'), 70);
 }
 
+// ── CHORD-HOLD (BREAK section) ───────────────────────────
+// One chord at a time. Spawn 2-3 pads simultaneously; player must press AND
+// hold all of them for 4 beats. Progress is checked once per beat (here) plus
+// a smooth visual fill driven by Date.now(). Releasing any held pad early
+// breaks the combo. After resolution we leave a small gap, then spawn another.
+const CHORD_HOLD_BEATS = 4;
+const CHORD_GAP_BEATS  = 1;
+let chord = {
+  active: false,
+  pads: [],            // pad indices that make up this chord
+  startedAt: 0,        // wall-clock ms when player first pressed all required pads
+  beatsHeld: 0,        // beats elapsed since hold began (only ticks while fully held)
+  awaiting: false,     // true once spawned but not yet fully held
+  gap: 0,              // remaining beats before next chord can spawn
+  rafId: null,
+  finished: false      // resolved (success/fail) — wait for gap before next
+};
+
+function tickChord() {
+  if (!running) return;
+  if (chord.gap > 0) { chord.gap--; return; }
+  if (!chord.active) { spawnChord(); return; }
+  // Active chord: progress only ticks while every required pad is currently held.
+  if (chordAllHeld()) {
+    if (!chord.awaiting) {
+      chord.beatsHeld++;
+      if (chord.beatsHeld >= CHORD_HOLD_BEATS) resolveChord(true);
+    }
+  } else if (!chord.awaiting) {
+    // Player let go before completing — fail.
+    resolveChord(false);
+  }
+}
+
+function spawnChord() {
+  // Need at least 3 idle pads for a chord of size 2-3. Skip if not.
+  const idle = pads.map((p, i) => p.state === 'idle' ? i : -1).filter(i => i >= 0);
+  if (idle.length < 2) return;
+  shuffle(idle);
+  const size = idle.length >= 3 && Math.random() < 0.55 ? 3 : 2;
+  const picks = idle.slice(0, size);
+  chord.active = true;
+  chord.pads = picks;
+  chord.beatsHeld = 0;
+  chord.awaiting = true;
+  chord.finished = false;
+  chord.startedAt = 0;
+  // Use a single warm colour for chord cohesion.
+  const col = PAD_COLORS[Math.floor(Math.random() * PAD_COLORS.length)];
+  for (const idx of picks) {
+    const p = pads[idx];
+    p.state = 'chord';
+    p.held = false;
+    p.expiry = 0;
+    p.el.style.setProperty('--pad-color', col);
+    p.el.style.background = hexRgba(col, 0.15);
+    p.el.className = 'pad chord';
+    // Attach progress bar.
+    const bar = document.createElement('div');
+    bar.className = 'chord-bar';
+    bar.innerHTML = '<span></span>';
+    p.el.appendChild(bar);
+  }
+  startChordRaf();
+}
+
+function chordAllHeld() {
+  if (!chord.active || chord.pads.length === 0) return false;
+  for (const idx of chord.pads) {
+    if (!pads[idx] || !pads[idx].held) return false;
+  }
+  return true;
+}
+
+function startChordRaf() {
+  cancelChordRaf();
+  const tick = () => {
+    if (!chord.active) return;
+    // Smoothly extrapolate progress between beat ticks: progress = (beatsHeld + partial) / CHORD_HOLD_BEATS.
+    let frac;
+    if (chord.awaiting || !chordAllHeld()) {
+      frac = chord.beatsHeld / CHORD_HOLD_BEATS;
+    } else {
+      const elapsedMs = Date.now() - chord.startedAt;
+      // chord.startedAt resets each time we re-enter the held state at a beat boundary.
+      // Visual lead: cap at next beat's worth of progress.
+      const partial = Math.min(1, (elapsedMs / beatMs()));
+      frac = Math.min(1, (chord.beatsHeld + partial) / CHORD_HOLD_BEATS);
+    }
+    for (const idx of chord.pads) {
+      const p = pads[idx];
+      if (!p) continue;
+      const span = p.el.querySelector('.chord-bar > span');
+      if (span) span.style.width = (frac * 100).toFixed(1) + '%';
+    }
+    chord.rafId = requestAnimationFrame(tick);
+  };
+  chord.rafId = requestAnimationFrame(tick);
+}
+function cancelChordRaf() {
+  if (chord.rafId) cancelAnimationFrame(chord.rafId);
+  chord.rafId = null;
+}
+
+function resolveChord(success) {
+  if (!chord.active) return;
+  if (success) {
+    // Score scales with chord size and current combo.
+    const pts = 25 * chord.pads.length * combo;
+    score += pts;
+    hits += chord.pads.length;
+    bestCombo = Math.max(bestCombo, combo);
+    if (combo < 5) combo++;
+    updateCombo();
+    playPadHit();
+    for (const idx of chord.pads) pads[idx].el.classList.add('hit');
+  } else {
+    missed++;
+    playMiss();
+    breakCombo();
+    for (const idx of chord.pads) pads[idx].el.classList.add('miss');
+  }
+  // Tear down after a short visual.
+  const padIdxs = chord.pads.slice();
+  chord.active = false;
+  chord.pads = [];
+  chord.awaiting = false;
+  chord.finished = true;
+  chord.gap = CHORD_GAP_BEATS;
+  cancelChordRaf();
+  setTimeout(() => {
+    for (const idx of padIdxs) {
+      const p = pads[idx];
+      if (!p) continue;
+      const bar = p.el.querySelector('.chord-bar');
+      if (bar) bar.remove();
+      p.held = false;
+      deactivate(idx);
+    }
+  }, 220);
+  hud();
+}
+
+function clearChord() {
+  // Force-clean any chord state (used on section change away from BREAK or game end).
+  cancelChordRaf();
+  for (const idx of chord.pads) {
+    const p = pads[idx];
+    if (!p) continue;
+    const bar = p.el.querySelector('.chord-bar');
+    if (bar) bar.remove();
+    p.held = false;
+    if (p.state === 'chord') deactivate(idx);
+  }
+  chord.active = false;
+  chord.pads = [];
+  chord.awaiting = false;
+  chord.beatsHeld = 0;
+  chord.gap = 0;
+  chord.finished = false;
+}
+
+function chordOnPress(idx) {
+  if (!chord.active) return;
+  if (chord.pads.indexOf(idx) === -1) {
+    // Pressing a non-chord pad during BREAK doesn't do anything special.
+    return;
+  }
+  const p = pads[idx];
+  if (!p.held) {
+    p.held = true;
+    p.el.classList.add('held');
+  }
+  // If we just transitioned to fully-held, latch the awaiting flag and timer.
+  if (chord.awaiting && chordAllHeld()) {
+    chord.awaiting = false;
+    chord.beatsHeld = 0;
+    chord.startedAt = Date.now();
+  } else if (!chord.awaiting && chordAllHeld()) {
+    // Re-grip after a brief slip — but the next tickChord will not award the
+    // missed beat. Just resync the visual baseline.
+    chord.startedAt = Date.now();
+  }
+}
+
+function chordOnRelease(idx) {
+  if (!chord.active) return;
+  if (chord.pads.indexOf(idx) === -1) return;
+  const p = pads[idx];
+  if (!p.held) return;
+  p.held = false;
+  p.el.classList.remove('held');
+  // If hold was already in progress (not awaiting first grip), this is a fail.
+  if (!chord.awaiting && !chord.finished) {
+    resolveChord(false);
+  }
+}
+
 function spawn(ints) {
   if (!running) return;
-  // Section gating: no pads in INTRO (0) or OUTRO (5).
-  if (ints === 0 || ints === 5) return;
-  // VERSE: occasional skip for breathing room. BREAK: very sparse.
+  // Section gating: no normal pads in INTRO (0), BREAK (4 — handled by chord system), or OUTRO (5).
+  if (ints === 0 || ints === 4 || ints === 5) return;
+  // VERSE: occasional skip for breathing room.
   if (ints === 1 && Math.random() < 0.3) return;
-  if (ints === 4 && Math.random() < 0.7) return;
   const idle = pads.map((p,i) => p.state==='idle' ? i : -1).filter(i => i >= 0);
   const active = pads.filter(p => p.state !== 'idle').length;
   if (active >= MAX_ACTIVE || idle.length === 0) return;
-  const cap = ints === 3 ? 2 : 1;
-  const n = Math.min(cap, MAX_ACTIVE - active, idle.length);
+  // DROP no longer pairs spawns — eighth-note cadence is handled by onBeat.
+  const n = Math.min(1, MAX_ACTIVE - active, idle.length);
   shuffle(idle);
   for (let k = 0; k < n; k++) previewPad(idle[k]);
 }
@@ -1348,6 +1699,12 @@ function tapPad(idx) {
   const p = pads[idx];
   if (p.state === 'idle') return;
 
+  // Chord pads use press-and-hold semantics, not single-tap scoring.
+  if (p.state === 'chord') {
+    chordOnPress(idx);
+    return;
+  }
+
   // Treat pending taps the same as the resolved state — early hits on a normal
   // pad score full points, early taps on a danger pad still trip the danger.
   const isDanger = p.state === 'danger' || (p.state === 'pending' && p.willBe === 'danger');
@@ -1413,6 +1770,7 @@ function finishSong() {
   if (!running) return;
   running = false;
   clearTimeout(beatIv);
+  clearChord();
 
   const elapsed = Math.round((Date.now() - t0) / 1000);
   const totalAttempts = hits + missed;
@@ -1425,6 +1783,16 @@ function finishSong() {
   st.bestCombo = Math.max(st.bestCombo, bestCombo);
   st.totalHits += hits;
   saveStats(st);
+  if (curTrack) {
+    recordRun({
+      trackId: curTrack.id,
+      title: curTrack.title,
+      artist: curTrack.artist,
+      score, hits, missed, accuracy,
+      bestCombo, time: elapsed,
+      ts: Date.now()
+    });
+  }
 
   const trackLine = curTrack ? `${curTrack.artist} — ${curTrack.title}` : '';
 
@@ -1449,15 +1817,66 @@ function finishSong() {
 function endGame() { finishSong(); }
 
 // ── GAME HISTORY SCREEN ───────────────────────────────────────
+let recTab = 'all';   // 'all' | trackId
 function renderRecords() {
   const s = loadStats();
-  document.getElementById('rec-body').innerHTML = `
+  // Summary block
+  document.getElementById('rec-summary').innerHTML = `
     <div class="rec-row"><span class="rec-lbl">HIGH SCORE</span><span class="rec-val">${s.hi}</span></div>
     <div class="rec-row"><span class="rec-lbl">BEST COMBO</span><span class="rec-val">×${s.bestCombo}</span></div>
-    <div class="rec-row"><span class="rec-lbl">BEST TIME</span><span class="rec-val">${s.bestTime}s</span></div>
-    <div class="rec-row"><span class="rec-lbl">TOTAL HITS</span><span class="rec-val">${s.totalHits}</span></div>
     <div class="rec-row"><span class="rec-lbl">GAMES PLAYED</span><span class="rec-val">${s.plays}</span></div>
   `;
+  // Pick default tab — most recently played track if known, else ALL.
+  const validIds = new Set(TRACKS.map(t => t.id));
+  if (recTab !== 'all' && !validIds.has(recTab)) recTab = 'all';
+  if (recTab === 'all' && s.lastTrack && validIds.has(s.lastTrack)) recTab = s.lastTrack;
+  // Tabs: ALL + one per track
+  const tabsEl = document.getElementById('rec-tabs');
+  tabsEl.innerHTML = '';
+  const allBtn = document.createElement('button');
+  allBtn.className = 'hist-tab' + (recTab === 'all' ? ' active' : '');
+  allBtn.style.setProperty('--tab-color', '#ffffff');
+  allBtn.textContent = 'ALL';
+  allBtn.onclick = () => { recTab = 'all'; renderRecords(); };
+  tabsEl.appendChild(allBtn);
+  TRACKS.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'hist-tab' + (recTab === t.id ? ' active' : '');
+    btn.style.setProperty('--tab-color', t.color);
+    btn.textContent = t.title;
+    btn.onclick = () => { recTab = t.id; renderRecords(); };
+    tabsEl.appendChild(btn);
+  });
+  // Body — runs filtered by tab, newest first.
+  const body = document.getElementById('rec-body');
+  let runs = (s.runs || []).slice().sort((a, b) => b.ts - a.ts);
+  if (recTab !== 'all') runs = runs.filter(r => r.trackId === recTab);
+  if (runs.length === 0) {
+    body.innerHTML = `<div class="hist-empty">${recTab === 'all' ? 'NO RUNS YET — PLAY A TRACK TO LOG ONE.' : 'NO RUNS ON THIS TRACK YET.'}</div>`;
+    return;
+  }
+  body.innerHTML = runs.map(r => {
+    const t = TRACKS.find(x => x.id === r.trackId);
+    const col = t ? t.color : '#00eeff';
+    const title = (t ? t.title : (r.title || r.trackId)) || r.trackId;
+    const artist = (t ? t.artist : (r.artist || '')) || '';
+    const dt = new Date(r.ts);
+    const dateStr = dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    return `
+      <div class="run-card" style="--run-color:${col}">
+        <div class="run-track">${title}${artist ? ' · ' + artist : ''}</div>
+        <div class="run-date">${dateStr}</div>
+        <div class="run-stats">
+          <span>SCORE <b>${r.score}</b></span>
+          <span>ACC <b>${r.accuracy}%</b></span>
+          <span>HITS <b>${r.hits}</b></span>
+          <span>MISS <b>${r.missed}</b></span>
+          <span>×<b>${r.bestCombo}</b></span>
+          <span><b>${r.time}s</b></span>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 // ── UTILS ────────────────────────────────────────────────
