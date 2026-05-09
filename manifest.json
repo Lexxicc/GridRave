@@ -1,0 +1,9 @@
+{
+  "name": "GRIDRAVE",
+  "short_name": "GRIDRAVE",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#08000f",
+  "theme_color": "#ff00ff",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
