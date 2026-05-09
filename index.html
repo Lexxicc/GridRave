@@ -51,41 +51,107 @@
   #grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    gap: 10px;
     width: min(88vw, 370px);
     margin: 0 auto;
+    /* Subtle chassis frame around the whole pad cluster */
+    padding: 10px;
+    background: linear-gradient(180deg, #0a0014 0%, #060010 100%);
+    border-radius: 14px;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.04),
+      inset 0 -1px 0 rgba(0,0,0,0.6),
+      0 4px 18px rgba(0,0,0,0.55);
   }
+  /* ── Synth pad (PreSonus ATOM-style) ───────────────────── */
   .pad {
     aspect-ratio: 1;
-    border-radius: 10px;
+    border-radius: 12px;
     cursor: pointer;
     position: relative;
-    background: #0e0016;
-    border: 2px solid #1a0026;
-    transition: border-color 0.1s;
+    /* Soft rubberised surface with a faint top highlight + bottom shade */
+    background-color: #0e0016;
+    background-image:
+      linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 35%, rgba(0,0,0,0.35) 100%);
+    border: none;
+    /* Recessed bezel (inner ring) + outer chassis shadow for depth */
+    box-shadow:
+      inset 0 0 0 1.5px rgba(255,255,255,0.06),
+      inset 0 2px 3px rgba(255,255,255,0.05),
+      inset 0 -2px 3px rgba(0,0,0,0.55),
+      0 2px 4px rgba(0,0,0,0.55),
+      0 0 0 1px rgba(0,0,0,0.6);
+    transition: box-shadow 0.12s ease, transform 0.08s ease, background-color 0.12s ease;
+  }
+  /* Numeric label in top-left corner — uses ::after so it survives className resets */
+  .pad::after {
+    content: attr(data-n);
+    position: absolute;
+    top: 5px;
+    left: 7px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.62rem;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    color: rgba(255,255,255,0.32);
+    text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+    pointer-events: none;
+    z-index: 3;
+    transition: color 0.12s ease, text-shadow 0.12s ease;
   }
   .pad.active {
-    border-color: var(--pad-color);
-    box-shadow: 0 0 14px var(--pad-color), inset 0 0 18px rgba(255,255,255,0.04);
+    /* Internal LED glow — bright centre, radial bloom toward edges */
+    background-image:
+      radial-gradient(circle at 50% 45%,
+        rgba(255,255,255,0.85) 0%,
+        var(--pad-color) 35%,
+        rgba(0,0,0,0.15) 100%);
+    box-shadow:
+      inset 0 0 0 1.5px rgba(255,255,255,0.18),
+      inset 0 0 24px rgba(255,255,255,0.18),
+      0 0 18px var(--pad-color),
+      0 0 36px var(--pad-color),
+      0 2px 4px rgba(0,0,0,0.55);
   }
+  .pad.active::after { color: rgba(255,255,255,0.85); text-shadow: 0 0 4px rgba(0,0,0,0.7); }
   .pad.danger {
-    border-color: var(--danger);
-    box-shadow: 0 0 18px var(--danger);
+    background-image:
+      radial-gradient(circle at 50% 45%,
+        rgba(255,255,255,0.7) 0%,
+        var(--danger) 40%,
+        rgba(40,0,6,0.4) 100%);
+    box-shadow:
+      inset 0 0 0 1.5px rgba(255,255,255,0.16),
+      inset 0 0 22px rgba(255,80,100,0.25),
+      0 0 22px var(--danger),
+      0 0 44px rgba(255,17,51,0.5),
+      0 2px 4px rgba(0,0,0,0.55);
     animation: dpulse 0.35s ease-in-out infinite alternate;
   }
+  .pad.danger::after { color: rgba(255,255,255,0.85); }
   .pad.danger::before {
     content: '';
     position: absolute;
     top: 50%; left: 50%;
     width: 38%; height: 38%;
     transform: translate(-50%, -50%) rotate(45deg);
-    border: 2px solid rgba(255,17,51,0.7);
-    box-shadow: 0 0 5px rgba(255,17,51,0.5), inset 0 0 5px rgba(255,17,51,0.2);
+    border: 2px solid rgba(255,255,255,0.85);
+    box-shadow: 0 0 6px rgba(255,17,51,0.7), inset 0 0 5px rgba(255,255,255,0.35);
     pointer-events: none;
+    z-index: 2;
   }
   @keyframes dpulse {
-    from { box-shadow: 0 0 8px var(--danger); }
-    to   { box-shadow: 0 0 28px var(--danger), 0 0 48px rgba(255,17,51,0.4); }
+    from { box-shadow:
+      inset 0 0 0 1.5px rgba(255,255,255,0.14),
+      inset 0 0 18px rgba(255,80,100,0.2),
+      0 0 12px var(--danger),
+      0 2px 4px rgba(0,0,0,0.55); }
+    to   { box-shadow:
+      inset 0 0 0 1.5px rgba(255,255,255,0.22),
+      inset 0 0 26px rgba(255,80,100,0.3),
+      0 0 28px var(--danger),
+      0 0 48px rgba(255,17,51,0.45),
+      0 2px 4px rgba(0,0,0,0.55); }
   }
   .pad-dot {
     position: absolute;
@@ -94,9 +160,10 @@
     border-radius: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
-    background: var(--pad-color);
-    box-shadow: 0 0 8px var(--pad-color);
-    opacity: 0.85;
+    background: radial-gradient(circle at 50% 45%, rgba(255,255,255,0.85) 0%, var(--pad-color) 60%, rgba(0,0,0,0.2) 100%);
+    box-shadow: 0 0 10px var(--pad-color);
+    opacity: 0.9;
+    z-index: 2;
   }
   .pad.hit { animation: hitanim 0.14s ease-out forwards; }
   .pad.miss { animation: missanim 0.22s ease-out forwards; }
@@ -105,8 +172,8 @@
     100% { transform: scale(1); }
   }
   @keyframes missanim {
-    0%   { background: rgba(255,17,51,0.35); }
-    100% { background: #0e0016; }
+    0%   { background-color: rgba(255,17,51,0.35); }
+    100% { background-color: #0e0016; }
   }
 
   #count-in {
@@ -331,18 +398,42 @@
 
   /* ── Chord mechanic ── */
   .pad.chord {
-    border-color: var(--pad-color);
-    box-shadow: 0 0 18px var(--pad-color), inset 0 0 22px rgba(255,255,255,0.06);
+    background-image:
+      radial-gradient(circle at 50% 45%,
+        rgba(255,255,255,0.7) 0%,
+        var(--pad-color) 40%,
+        rgba(0,0,0,0.2) 100%);
+    box-shadow:
+      inset 0 0 0 1.5px rgba(255,255,255,0.18),
+      inset 0 0 22px rgba(255,255,255,0.16),
+      0 0 18px var(--pad-color),
+      0 0 32px var(--pad-color),
+      0 2px 4px rgba(0,0,0,0.55);
     animation: chordpulse 1s ease-in-out infinite alternate;
   }
+  .pad.chord::after { color: rgba(255,255,255,0.85); }
   .pad.chord.held {
-    box-shadow: 0 0 28px var(--pad-color), inset 0 0 30px rgba(255,255,255,0.12);
+    box-shadow:
+      inset 0 0 0 1.5px rgba(255,255,255,0.28),
+      inset 0 0 30px rgba(255,255,255,0.22),
+      0 0 28px var(--pad-color),
+      0 0 48px var(--pad-color),
+      0 2px 4px rgba(0,0,0,0.55);
     animation: none;
     transform: scale(0.96);
   }
   @keyframes chordpulse {
-    from { box-shadow: 0 0 12px var(--pad-color), inset 0 0 18px rgba(255,255,255,0.03); }
-    to   { box-shadow: 0 0 26px var(--pad-color), inset 0 0 28px rgba(255,255,255,0.10); }
+    from { box-shadow:
+      inset 0 0 0 1.5px rgba(255,255,255,0.14),
+      inset 0 0 18px rgba(255,255,255,0.1),
+      0 0 12px var(--pad-color),
+      0 2px 4px rgba(0,0,0,0.55); }
+    to   { box-shadow:
+      inset 0 0 0 1.5px rgba(255,255,255,0.22),
+      inset 0 0 28px rgba(255,255,255,0.2),
+      0 0 26px var(--pad-color),
+      0 0 44px var(--pad-color),
+      0 2px 4px rgba(0,0,0,0.55); }
   }
   .chord-bar {
     position: absolute;
@@ -354,7 +445,8 @@
     border-radius: 2px;
     overflow: hidden;
     pointer-events: none;
-    border: 1px solid rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
+    z-index: 2;
   }
   .chord-bar > span {
     display: block;
@@ -539,7 +631,7 @@
   </div>
 </div>
 
-<div class="footer">GRIDRAVE v0.0.13 &nbsp;·&nbsp; TACTICON STUDIOS</div>
+<div class="footer">GRIDRAVE v0.0.14 &nbsp;·&nbsp; TACTICON STUDIOS</div>
 
 <script>
 // ── CONFIG ───────────────────────────────────────────────
@@ -567,6 +659,27 @@ function audio() {
   if (!actx) {
     actx = new (window.AudioContext || window.webkitAudioContext)();
     initBus();
+  }
+  // Browsers (esp. Safari/iOS) can leave the context in 'suspended' state until
+  // a user gesture resumes it. Re-resume defensively on every entry — if it's
+  // already running this is a no-op. resume() returns a promise; callers that
+  // need playback to actually start should await audioReady() instead.
+  if (actx.state === 'suspended') {
+    try { actx.resume(); } catch (_) {}
+  }
+}
+
+// Async variant — awaits the context being in 'running' state. Use this before
+// any code path that schedules audio after async work (e.g. MP3 decode).
+function audioReady() {
+  audio();
+  if (!actx) return Promise.resolve();
+  if (actx.state === 'running') return Promise.resolve();
+  try {
+    const p = actx.resume();
+    return (p && p.then) ? p : Promise.resolve();
+  } catch (_) {
+    return Promise.resolve();
   }
 }
 
@@ -968,6 +1081,141 @@ const TRACKS = [
   }
 ];
 
+// ── MP3-BACKED TRACKS ────────────────────────────────────
+// Each MP3 track ships as a real audio file alongside the page; the procedural
+// engine is bypassed and the bar/beat clock is driven by the AudioContext
+// playhead instead of Date.now(). To add a new MP3 track, drop the .mp3 in the
+// repo and append an entry below — no code changes required.
+//
+// Schema:
+//   {
+//     id, artist, title, style, color   // same UI fields as procedural tracks
+//     mp3: true                          // marks as MP3-backed (presence of `file`)
+//     file: 'relative-path.mp3'          // URL fetched on first selection
+//     bpm:  120                          // per-track BPM
+//     bars: 90                           // total musical bars (excludes silent lead-in)
+//     sections: [                        // bar-indexed intensity markers
+//       { startBar:0,  intensity:'intro' },
+//       { startBar:4,  intensity:'build' },
+//       ...
+//     ]
+//   }
+// `intensity` strings map to the procedural integer scale via INTENSITY_MAP.
+const INTENSITY_MAP = {
+  intro: 0, verse: 1, build: 2, drop: 3, break: 4, outro: 5
+};
+const MP3_TRACKS = [
+  {
+    id:'loveyoubetter', artist:'EPIDEMIC', title:'LOVE YOU BETTER', style:'MP3 · POP HOUSE',
+    color:'#ec4899', mp3:true,
+    file:'ES_Love You Better - PW.mp3',
+    bpm:120, bars:90,
+    sections:[
+      { startBar:0,  intensity:'intro' },  // 4 bars
+      { startBar:4,  intensity:'build' },  // 1 bar fill
+      { startBar:5,  intensity:'drop'  },  // 8 bars upbeat
+      { startBar:13, intensity:'verse' },  // 8 bars chill
+      { startBar:21, intensity:'break' },  // 3 bars relax
+      { startBar:24, intensity:'build' },  // 1 bar fill
+      { startBar:25, intensity:'drop'  },  // 16 bars upbeat
+      { startBar:41, intensity:'verse' },  // 8 bars chill
+      { startBar:49, intensity:'break' },  // 3 bars relax
+      { startBar:52, intensity:'build' },  // 1 bar fill
+      { startBar:53, intensity:'drop'  },  // 12 bars upbeat
+      { startBar:65, intensity:'build' },  // 8 bar rolling buildup
+      { startBar:73, intensity:'build' },  // 1 bar fill
+      { startBar:74, intensity:'drop'  },  // 16 bars upbeat
+      { startBar:90, intensity:'outro' }   // abrupt ending
+    ]
+  }
+];
+
+// All tracks (procedural + MP3) presented in the discography. MP3 tracks come
+// after the procedurals; UI distinguishes them via the `mp3` flag.
+const ALL_TRACKS = TRACKS.concat(MP3_TRACKS);
+
+// MP3 buffer cache, keyed by track id.
+const mp3BufCache = {};
+const mp3LoadingPromises = {};
+
+function loadMp3Buffer(track) {
+  if (mp3BufCache[track.id]) return Promise.resolve(mp3BufCache[track.id]);
+  if (mp3LoadingPromises[track.id]) return mp3LoadingPromises[track.id];
+  audio();
+  // encodeURI handles spaces + special chars in the filename safely. Without
+  // this the fetch silently 404s on some browsers.
+  const url = encodeURI(track.file);
+  const p = fetch(url)
+    .then(r => {
+      if (!r.ok) throw new Error('fetch failed: ' + r.status + ' for ' + url);
+      return r.arrayBuffer();
+    })
+    .then(ab => new Promise((res, rej) => {
+      // decodeAudioData has both promise and callback shapes across browsers.
+      // Use one or the other (NOT both) to avoid double-resolving the wrapper.
+      let settled = false;
+      const ok = (b) => { if (!settled) { settled = true; res(b); } };
+      const fail = (e) => { if (!settled) { settled = true; rej(e); } };
+      try {
+        const ret = actx.decodeAudioData(ab, ok, fail);
+        if (ret && ret.then) ret.then(ok, fail);
+      } catch (e) { fail(e); }
+    }))
+    .then(buf => {
+      mp3BufCache[track.id] = buf;
+      // Detect silent lead-in once decoded — scan first channel for first
+      // sample exceeding |0.01| amplitude.
+      const ch0 = buf.getChannelData(0);
+      const thresh = 0.01;
+      let firstNonSilent = 0;
+      const scanLen = Math.min(ch0.length, buf.sampleRate * 30); // cap scan to 30s
+      for (let i = 0; i < scanLen; i++) {
+        if (Math.abs(ch0[i]) > thresh) { firstNonSilent = i; break; }
+      }
+      buf._leadInSec = firstNonSilent / buf.sampleRate;
+      return buf;
+    })
+    .catch(err => {
+      console.error('[GR] MP3 load failed:', err);
+      delete mp3LoadingPromises[track.id];
+      throw err;
+    });
+  mp3LoadingPromises[track.id] = p;
+  return p;
+}
+
+// Build an array bar→intensityInt for fast per-beat lookup. Index = bar number.
+function buildMp3IntensityMap(track) {
+  const map = new Array(track.bars);
+  let curInt = 0;
+  let cursor = 0;
+  for (let bar = 0; bar < track.bars; bar++) {
+    while (cursor < track.sections.length && track.sections[cursor].startBar <= bar) {
+      curInt = INTENSITY_MAP[track.sections[cursor].intensity] || 0;
+      cursor++;
+    }
+    map[bar] = curInt;
+  }
+  return map;
+}
+
+// Build SECTION-array equivalent (used for banner labels) from section markers.
+function buildMp3SectionList(track) {
+  const out = [];
+  for (let i = 0; i < track.sections.length; i++) {
+    const s = track.sections[i];
+    const next = track.sections[i+1];
+    const endBar = next ? next.startBar : track.bars;
+    if (endBar <= s.startBar) continue;
+    out.push({
+      name: s.intensity.toUpperCase(),
+      bars: endBar - s.startBar,
+      intensity: INTENSITY_MAP[s.intensity] || 0
+    });
+  }
+  return out;
+}
+
 // ── TRACK STATE ──
 let trackIdx = 0;
 let trackRandom = true;
@@ -975,9 +1223,23 @@ let curTrack = null;
 let songBeat = 0;        // beats elapsed in current song (0 .. SONG_BARS*4)
 let lastSec = null;      // last section, for section-change banner
 
+// MP3 playback state (only populated when curTrack.mp3 === true).
+let mp3State = {
+  active: false,
+  source: null,           // AudioBufferSourceNode
+  buffer: null,
+  startCtxTime: 0,        // audioCtx.currentTime when source.start() was scheduled
+  leadInSec: 0,           // silent lead-in offset (seconds into the buffer)
+  bpm: 120,
+  bars: 0,
+  intensityByBar: null,   // bar → intensity int
+  sectionList: null,      // [{name, bars, intensity}]
+  ended: false
+};
+
 function pickTrack() {
-  if (trackRandom) curTrack = TRACKS[Math.floor(Math.random()*TRACKS.length)];
-  else curTrack = TRACKS[trackIdx % TRACKS.length];
+  if (trackRandom) curTrack = ALL_TRACKS[Math.floor(Math.random()*ALL_TRACKS.length)];
+  else curTrack = ALL_TRACKS[trackIdx % ALL_TRACKS.length];
 }
 function resetSong() {
   songBeat = 0;
@@ -988,31 +1250,66 @@ function resetSong() {
   if (drumBus) drumBus.gain.setValueAtTime(1.0, actx.currentTime);
   if (bassBus) bassBus.gain.setValueAtTime(0.85, actx.currentTime);
   if (leadBus) leadBus.gain.setValueAtTime(0.7, actx.currentTime);
+  // Clean up any prior MP3 source.
+  stopMp3();
+  mp3State.active = false;
+  mp3State.source = null;
+  mp3State.buffer = null;
+  mp3State.ended = false;
+}
+
+function isMp3Track(t) { return !!(t && t.mp3); }
+
+// Total bars for the current song (procedural fixed structure or MP3 metadata).
+function curSongBars() {
+  if (isMp3Track(curTrack)) return mp3State.bars || curTrack.bars;
+  return SONG_BARS;
+}
+
+// Section lookup that works for both engines.
+function curGetSection(bar) {
+  if (isMp3Track(curTrack)) {
+    if (!mp3State.sectionList) return null;
+    let n = 0;
+    for (const s of mp3State.sectionList) {
+      if (bar < n + s.bars) return s;
+      n += s.bars;
+    }
+    return null;
+  }
+  return getSection(bar);
 }
 
 // Schedules one beat of audio (8 32nd notes). Returns true if more beats remain.
+// For MP3-backed tracks the audio is the MP3 itself — this function only advances
+// the songBeat counter and fires the section-change banner.
 function scheduleSongBeat(audioStart) {
   if (!curTrack) return false;
+  const totalBars = curSongBars();
   const bar = Math.floor(songBeat / 4);
-  if (bar >= SONG_BARS) return false;
+  if (bar >= totalBars) return false;
 
-  const sec = getSection(bar);
-  const stepDur = (beatMs() / 8) / 1000;
-  const beatInBar = songBeat % 4;
-  const rootHz = curTrack.prog[bar % curTrack.prog.length];
+  const sec = curGetSection(bar);
 
-  for (let s = 0; s < 8; s++) {
-    const when = audioStart + s * stepDur;
-    const stepInBar = beatInBar * 8 + s;
-    curTrack.drum(when, stepInBar, sec.intensity);
-    curTrack.bass(when, stepInBar, rootHz, sec.intensity);
-    curTrack.lead(when, stepInBar, rootHz, sec.intensity, bar);
+  if (!isMp3Track(curTrack)) {
+    // Procedural engine — synthesise this beat.
+    const stepDur = (beatMs() / 8) / 1000;
+    const beatInBar = songBeat % 4;
+    const rootHz = curTrack.prog[bar % curTrack.prog.length];
+    for (let s = 0; s < 8; s++) {
+      const when = audioStart + s * stepDur;
+      const stepInBar = beatInBar * 8 + s;
+      curTrack.drum(when, stepInBar, sec.intensity);
+      curTrack.bass(when, stepInBar, rootHz, sec.intensity);
+      curTrack.lead(when, stepInBar, rootHz, sec.intensity, bar);
+    }
   }
 
-  // Section change → banner; first outro beat → start fade
-  if (sec !== lastSec) {
+  // Section change → banner; first outro beat → start fade (procedural only —
+  // MP3 outros end naturally with the file).
+  if (sec && sec !== lastSec) {
     showSectionBanner(sec);
-    if (sec.intensity === 5) startOutroFade();
+    if (!isMp3Track(curTrack) && sec.intensity === 5) startOutroFade();
     lastSec = sec;
   }
 
@@ -1037,7 +1334,48 @@ function startOutroFade() {
 }
 
 function songProgress() {
-  return Math.min(1, songBeat / (SONG_BARS * 4));
+  return Math.min(1, songBeat / (curSongBars() * 4));
+}
+
+// ── MP3 PLAYBACK ─────────────────────────────────────────
+function startMp3(track, buffer) {
+  audio();
+  stopMp3();
+  const src = actx.createBufferSource();
+  src.buffer = buffer;
+  src.connect(masterBus);
+  // Schedule a small lead time so we have a stable startCtxTime to clock against.
+  const startAt = actx.currentTime + 0.08;
+  src.start(startAt);
+  mp3State.active = true;
+  mp3State.source = src;
+  mp3State.buffer = buffer;
+  mp3State.startCtxTime = startAt;
+  mp3State.leadInSec = buffer._leadInSec || 0;
+  mp3State.bpm = track.bpm;
+  mp3State.bars = track.bars;
+  mp3State.intensityByBar = buildMp3IntensityMap(track);
+  mp3State.sectionList = buildMp3SectionList(track);
+  mp3State.ended = false;
+  src.onended = () => { mp3State.ended = true; };
+}
+
+function stopMp3() {
+  if (mp3State && mp3State.source) {
+    try { mp3State.source.onended = null; mp3State.source.stop(); }
+    catch (_) {}
+    try { mp3State.source.disconnect(); } catch (_) {}
+  }
+  mp3State.active = false;
+  mp3State.source = null;
+}
+
+// Current song position (seconds), with silent lead-in subtracted, so position 0
+// corresponds to musical bar 0 / beat 0.
+function mp3SongPosition() {
+  if (!mp3State.active || !actx) return 0;
+  const ctxElapsed = actx.currentTime - mp3State.startCtxTime;
+  return Math.max(0, ctxElapsed - mp3State.leadInSec);
 }
 
 // ── ONE-SHOT SFX (preserve old API) ──
@@ -1167,8 +1505,8 @@ function renderTrackList() {
   randRow.onclick = () => { trackRandom = true; renderTrackList(); };
   el.appendChild(randRow);
 
-  // Track rows
-  TRACKS.forEach((t, i) => {
+  // Track rows (procedural + MP3-backed)
+  ALL_TRACKS.forEach((t, i) => {
     const isSel = !trackRandom && trackIdx === i;
     const isPlaying = preview.active && preview.trackId === t.id;
     const row = document.createElement('div');
@@ -1176,12 +1514,15 @@ function renderTrackList() {
     row.style.borderColor = t.color;
     row.style.color = t.color;
     const num = String(i + 1).padStart(2, '0');
-    const playGlyph = isPlaying
-      ? '<span class="eq"><span></span><span></span><span></span></span>'
-      : '▶';
+    const isMp3 = isMp3Track(t);
+    // MP3 tracks: no preview button (no synth voicings to drive the preview engine).
+    // Tag with an "MP3" badge so it's visually distinct from procedural rows.
+    const playBtn = isMp3
+      ? '<div style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:bold;letter-spacing:0.1em;border:1px solid currentColor;border-radius:50%;flex-shrink:0;">MP3</div>'
+      : `<button class="track-play" data-pv="${t.id}">${isPlaying ? '<span class="eq"><span></span><span></span><span></span></span>' : '▶'}</button>`;
     row.innerHTML = `
       <div class="track-num">${num}</div>
-      <button class="track-play" data-pv="${t.id}">${playGlyph}</button>
+      ${playBtn}
       <div class="track-meta">
         <div class="track-artist">${t.artist}</div>
         <div class="track-title">${t.title}</div>
@@ -1190,7 +1531,7 @@ function renderTrackList() {
       <div class="track-check">${isSel ? '✓' : ''}</div>
     `;
     row.onclick = (e) => {
-      // play button toggles preview
+      // play button toggles preview (procedural only)
       if (e.target.closest('.track-play')) {
         togglePreview(t);
         return;
@@ -1274,6 +1615,9 @@ function buildGrid() {
   for (let i = 0; i < 16; i++) {
     const el = document.createElement('div');
     el.className = 'pad';
+    // Number label (1-16, top-left → bottom-right by row). Rendered via CSS ::after
+    // so it survives className resets in activatePad/deactivate.
+    el.setAttribute('data-n', String(i + 1).padStart(2, '0'));
     el.addEventListener('pointerdown', e => {
       e.preventDefault();
       // Capture the pointer so we still receive pointerup even if the finger
@@ -1301,6 +1645,27 @@ function startGame() {
   audio();
   pickTrack();
   resetSong();
+
+  // MP3 tracks need the buffer decoded before the loop can start. They also
+  // need the AudioContext fully 'running' — if it's still suspended when we
+  // call source.start(), playback is silent / nothing happens.
+  if (isMp3Track(curTrack)) {
+    showMp3Loading(true);
+    audioReady()
+      .then(() => loadMp3Buffer(curTrack))
+      .then(buf => { showMp3Loading(false); _startGameInner(buf); })
+      .catch(err => {
+        showMp3Loading(false);
+        console.error('[GR] MP3 load failed, falling back to menu:', err);
+        // Drop back to the menu — failed load shouldn't strand the player.
+        showScreen('s-menu');
+      });
+    return;
+  }
+  _startGameInner(null);
+}
+
+function _startGameInner(mp3Buffer) {
   showNowPlaying();
   score = 0; combo = 1; level = 1; hits = 0; missed = 0; bestCombo = 1;
   running = true; dropping = false; beatCount = 0; nextBeatAbsTime = 0;
@@ -1314,10 +1679,55 @@ function startGame() {
   buildGrid();
   showScreen('s-game');
   hud();
-  countIn();
+
+  if (isMp3Track(curTrack) && mp3Buffer) {
+    // Kick off MP3 playback first, then anchor the beat clock to the audio
+    // playhead. nextBeatAbsTime is still wall-clock for the setTimeout cadence,
+    // but each onBeat() resyncs it against actx.currentTime so drift is bounded.
+    startMp3(curTrack, mp3Buffer);
+    const ms = beatMs();
+    // First beat fires when the MP3's musical content (post lead-in) reaches
+    // beat 1. Translate to wall-clock for the setTimeout chain.
+    const firstBeatCtxTime = mp3State.startCtxTime + mp3State.leadInSec + (60 / mp3State.bpm);
+    const ctxNow = actx.currentTime;
+    const wallNow = Date.now();
+    nextBeatAbsTime = wallNow + Math.max(0, (firstBeatCtxTime - ctxNow) * 1000);
+    const idleNow = pads.map((p, i) => p.state === 'idle' ? i : -1).filter(i => i >= 0);
+    shuffle(idleNow);
+    if (idleNow.length > 0) previewPad(idleNow[0]);
+    startLoop();
+    return;
+  }
+
+  if (ENABLE_COUNT_IN) {
+    countIn();
+  } else {
+    // Count-in disabled: each track now opens with 4 bars of thumping bass that
+    // serve as the audible cue. Skip straight into the loop.
+    const ms = beatMs();
+    nextBeatAbsTime = Date.now() + ms;
+    const idleNow = pads.map((p, i) => p.state === 'idle' ? i : -1).filter(i => i >= 0);
+    shuffle(idleNow);
+    if (idleNow.length > 0) previewPad(idleNow[0]);
+    startLoop();
+  }
 }
 
-// ── COUNT-IN ─────────────────────────────────────────────
+function showMp3Loading(on) {
+  let el = document.getElementById('mp3-loading');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'mp3-loading';
+    el.style.cssText = 'position:fixed;inset:0;z-index:990;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.78);color:var(--accent);font-family:Courier New,monospace;letter-spacing:0.2em;font-size:0.9rem;text-shadow:0 0 12px var(--accent);';
+    el.textContent = 'LOADING TRACK...';
+    document.body.appendChild(el);
+  }
+  el.style.display = on ? 'flex' : 'none';
+}
+
+// ── COUNT-IN (feature-flagged off — see ENABLE_COUNT_IN below) ─────────
+// Retained for re-enabling later if track structure changes.
+const ENABLE_COUNT_IN = false;
 function countIn() {
   const ms = beatMs();
   const overlay = document.getElementById('count-in');
@@ -1369,7 +1779,22 @@ function scheduleTick() {
 
 function onBeat() {
   if (!running) return;
-  nextBeatAbsTime += beatMs();
+
+  // Beat-clock resync: in MP3 mode, snap nextBeatAbsTime to the audio playhead
+  // so we never drift relative to the MP3's own bar grid. In procedural mode
+  // we keep the existing wall-clock cadence.
+  if (isMp3Track(curTrack) && mp3State.active) {
+    const beatSec = 60 / mp3State.bpm;
+    const songPos = mp3SongPosition();      // seconds into the music
+    const liveBeat = songPos / beatSec;     // float beat index
+    // Round forward to the next integer beat; that's when the next pulse should fire.
+    const targetBeat = Math.floor(liveBeat) + 1;
+    const targetSongPos = targetBeat * beatSec;
+    const targetCtxTime = mp3State.startCtxTime + mp3State.leadInSec + targetSongPos;
+    nextBeatAbsTime = Date.now() + Math.max(0, (targetCtxTime - actx.currentTime) * 1000);
+  } else {
+    nextBeatAbsTime += beatMs();
+  }
   beatCount++;
 
   const more = scheduleSongBeat(actx.currentTime);
@@ -1377,7 +1802,7 @@ function onBeat() {
   expireCheck();
 
   const bar = Math.floor((songBeat - 1) / 4);
-  const sec = bar >= 0 ? getSection(bar) : null;
+  const sec = bar >= 0 ? curGetSection(bar) : null;
 
   if (sec) {
     if (sec.intensity === 4) {
@@ -1468,7 +1893,6 @@ function spawnChord() {
     p.held = false;
     p.expiry = 0;
     p.el.style.setProperty('--pad-color', col);
-    p.el.style.background = hexRgba(col, 0.15);
     p.el.className = 'pad chord';
     // Attach progress bar.
     const bar = document.createElement('div');
@@ -1643,10 +2067,8 @@ function previewPad(idx) {
     p.state = danger ? 'danger' : 'active';
     p.expiry = Date.now() + padLife();
     if (danger) {
-      p.el.style.background = 'rgba(255,17,51,0.12)';
       p.el.className = 'pad danger';
     } else {
-      p.el.style.background = hexRgba(col, 0.15);
       p.el.className = 'pad active';
     }
   }, delay);
@@ -1659,12 +2081,10 @@ function activatePad(idx) {
   p.expiry = Date.now() + padLife();
   if (danger) {
     p.el.style.setProperty('--pad-color', DANGER_COLOR);
-    p.el.style.background = 'rgba(255,17,51,0.12)';
     p.el.className = 'pad danger';
   } else {
     const c = PAD_COLORS[Math.floor(Math.random() * PAD_COLORS.length)];
     p.el.style.setProperty('--pad-color', c);
-    p.el.style.background = hexRgba(c, 0.15);
     p.el.className = 'pad active';
   }
 }
@@ -1771,6 +2191,7 @@ function finishSong() {
   running = false;
   clearTimeout(beatIv);
   clearChord();
+  stopMp3();
 
   const elapsed = Math.round((Date.now() - t0) / 1000);
   const totalAttempts = hits + missed;
@@ -1827,10 +2248,10 @@ function renderRecords() {
     <div class="rec-row"><span class="rec-lbl">GAMES PLAYED</span><span class="rec-val">${s.plays}</span></div>
   `;
   // Pick default tab — most recently played track if known, else ALL.
-  const validIds = new Set(TRACKS.map(t => t.id));
+  const validIds = new Set(ALL_TRACKS.map(t => t.id));
   if (recTab !== 'all' && !validIds.has(recTab)) recTab = 'all';
   if (recTab === 'all' && s.lastTrack && validIds.has(s.lastTrack)) recTab = s.lastTrack;
-  // Tabs: ALL + one per track
+  // Tabs: ALL + one per track (procedural + MP3)
   const tabsEl = document.getElementById('rec-tabs');
   tabsEl.innerHTML = '';
   const allBtn = document.createElement('button');
@@ -1839,7 +2260,7 @@ function renderRecords() {
   allBtn.textContent = 'ALL';
   allBtn.onclick = () => { recTab = 'all'; renderRecords(); };
   tabsEl.appendChild(allBtn);
-  TRACKS.forEach(t => {
+  ALL_TRACKS.forEach(t => {
     const btn = document.createElement('button');
     btn.className = 'hist-tab' + (recTab === t.id ? ' active' : '');
     btn.style.setProperty('--tab-color', t.color);
@@ -1856,7 +2277,7 @@ function renderRecords() {
     return;
   }
   body.innerHTML = runs.map(r => {
-    const t = TRACKS.find(x => x.id === r.trackId);
+    const t = ALL_TRACKS.find(x => x.id === r.trackId);
     const col = t ? t.color : '#00eeff';
     const title = (t ? t.title : (r.title || r.trackId)) || r.trackId;
     const artist = (t ? t.artist : (r.artist || '')) || '';
