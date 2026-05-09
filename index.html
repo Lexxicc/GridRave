@@ -523,6 +523,11 @@
   <div class="text-xl font-bold glow-p mb-4 tracking-widest">PATCH NOTES</div>
   <div class="w-full max-w-sm px-1" style="max-height:65vh;overflow-y:auto;">
     <div class="note-item">
+      <div class="note-ver">v0.0.15</div>
+      <div class="note-date">2026-05-09</div>
+      <div>Bass-intro polish — ints=0 phase now fully silent across all 5 default tracks (kick + bass both wait for ints≥1 to enter), giving a clean silence before the bass-only intro builds. AudioContext play-button robustness: resume-retry on suspended contexts + clearer "AudioContext not running" error surfacing for iOS/Safari debug. Pad-hit chime now pitched against the CURRENT chord (using prog[]) with perfect-only intervals (root/4/5/octave) — no more dissonance when the song moves off the I chord.</div>
+    </div>
+    <div class="note-item">
       <div class="note-ver">v0.0.13</div>
       <div class="note-date">2026-05-09</div>
       <div>Per-track game history tabs (ALL + one tab per track, default-active = last-played). Even DROP cadence — 1 spawn per eighth note (every half-beat) instead of 2 paired on every quarter note; same density, smoother feel. BREAK chord-hold mechanic — 2-3 pads spawn together with a hold-progress bar, hold all for 4 beats to score, score = 25 × pads × combo, release any pad mid-hold = miss + combo break.</div>
@@ -870,7 +875,6 @@ const TRACKS = [
     id:'helios', artist:'NXVØS', title:'HELIOS', style:'BIG ROOM EDM', color:'#ff00ff',
     bpm:128, key:220, prog:[220, 174.61, 261.63, 196],
     drum(when, step, ints) {
-      if (ints === 0 && (step === 0 || step === 16)) K(when, {f:140, drop:40, vol:0.7});
       if (ints >= 1 && step % 8 === 0) K(when, {f:150, drop:42, vol:0.95, dur:0.2, click:0.18});
       if (ints >= 1 && step % 8 === 4) H(when, {vol:0.15, hp:9000});
       if (ints >= 2 && step % 4 === 2) H(when, {vol:0.1, hp:9500});
@@ -881,7 +885,7 @@ const TRACKS = [
       if (ints === 5 && step === 0) K(when, {f:140, drop:40, vol:0.45});
     },
     bass(when, step, rootHz, ints) {
-      if (ints === 0 || ints === 5) return;
+      if (ints === 5) return;
       if (step % 4 === 0) {
         const f = rootHz/4;
         B(when, {f, type:'sawtooth', vol:0.45, dur:0.18, lp:650});
@@ -916,7 +920,6 @@ const TRACKS = [
     drum(when, step, ints) {
       if (ints >= 1 && step === 0)  K(when, {f:130, drop:35, vol:0.95, dur:0.22, click:0.1});
       if (ints >= 1 && step === 16) S(when, {tone:200, vol:0.55, dur:0.18, hp:1200});
-      if (ints === 0 && step === 0) K(when, {f:120, drop:30, vol:0.7, dur:0.22});
       if (ints >= 2 && step % 4 === 2) H(when, {vol:0.13, hp:9000});
       if (ints >= 3 && step % 8 === 6) H(when, {vol:0.16, hp:8500});
       if (ints === 3 && step === 12) S(when, {tone:240, vol:0.18, dur:0.06, hp:2000});
@@ -925,7 +928,7 @@ const TRACKS = [
       if (ints === 5 && step === 0) K(when, {f:120, drop:30, vol:0.4});
     },
     bass(when, step, rootHz, ints) {
-      if (ints === 0 || ints === 5) return;
+      if (ints === 5) return;
       if (step % 8 === 0) {
         B(when, {f: rootHz/4, type:'sawtooth', vol:0.5, dur:0.4, lp:400+ints*200});
         B(when, {f: rootHz/4*1.01, type:'sawtooth', vol:0.3, dur:0.4, lp:400+ints*200});
@@ -959,7 +962,6 @@ const TRACKS = [
     bpm:118, key:146.83, prog:[146.83, 116.54, 174.61, 196],
     drum(when, step, ints) {
       if (ints >= 1 && step % 8 === 0) K(when, {f:135, drop:42, vol:0.85, dur:0.16, click:0.12});
-      if (ints === 0 && (step === 0 || step === 16)) K(when, {f:130, drop:40, vol:0.65, dur:0.18});
       if (ints >= 1 && (step === 8 || step === 24)) S(when, {tone:220, vol:0.4, dur:0.1, hp:1800});
       if (ints >= 2 && step % 4 === 2) H(when, {vol:0.13, hp:9500});
       if (ints >= 3 && step === 28) H(when, {vol:0.2, open:1, hp:8500});
@@ -969,7 +971,7 @@ const TRACKS = [
       if (ints === 5 && step === 0) K(when, {f:130, drop:38, vol:0.4});
     },
     bass(when, step, rootHz, ints) {
-      if (ints === 0 || ints === 5) return;
+      if (ints === 5) return;
       if (step % 4 === 0) {
         const oct = step % 8 === 0 ? 0.5 : 1;
         B(when, {f: (rootHz/4)*oct, type:'sawtooth', vol:0.42, dur:0.18, lp:900});
@@ -1003,7 +1005,6 @@ const TRACKS = [
     bpm:130, key:138.59, prog:[138.59, 207.65, 184.99, 233.08],
     drum(when, step, ints) {
       if (ints >= 1 && step % 8 === 0) K(when, {f:120, drop:38, vol:1.0, dur:0.22, click:0.2});
-      if (ints === 0 && step % 8 === 0) K(when, {f:115, drop:35, vol:0.7, dur:0.22});
       if (ints >= 1 && (step === 8 || step === 24)) CL(when, {vol:0.28});
       if (ints >= 1 && step % 4 === 2) H(when, {vol:0.14, hp:9500});
       if (ints >= 3 && step === 12) H(when, {vol:0.22, open:1, hp:7500});
@@ -1011,7 +1012,7 @@ const TRACKS = [
       if (ints === 5 && step % 8 === 0) K(when, {f:115, drop:35, vol:0.5});
     },
     bass(when, step, rootHz, ints) {
-      if (ints === 0 || ints === 5) return;
+      if (ints === 5) return;
       if (step % 4 === 0) {
         B(when, {f: rootHz/4, type:'sawtooth', vol:0.4, dur:0.2, lp:500 + ints*150});
         B(when, {f: rootHz/4*0.99, type:'sawtooth', vol:0.32, dur:0.2, lp:500 + ints*150});
@@ -1043,7 +1044,6 @@ const TRACKS = [
     bpm:122, key:164.81, prog:[164.81, 130.81, 196, 146.83],
     drum(when, step, ints) {
       if (ints >= 1 && step % 8 === 0) K(when, {f:140, drop:40, vol:0.9, dur:0.2, click:0.15});
-      if (ints === 0 && step === 0) K(when, {f:130, drop:38, vol:0.65, dur:0.2});
       if (ints >= 1 && (step === 8 || step === 24)) S(when, {tone:230, vol:0.42, dur:0.12, hp:1500});
       if (ints >= 2 && step % 4 === 2) H(when, {vol:0.13, hp:9200});
       if (ints >= 3 && step === 28) H(when, {vol:0.2, open:1, hp:8000});
@@ -1051,7 +1051,7 @@ const TRACKS = [
       if (ints === 5 && step === 0) K(when, {f:130, drop:38, vol:0.4});
     },
     bass(when, step, rootHz, ints) {
-      if (ints === 0 || ints === 5) return;
+      if (ints === 5) return;
       if (step % 4 === 0) {
         B(when, {f: rootHz/4, type:'sine', vol:0.55, dur:0.22, lp:300});
         B(when, {f: rootHz/4, type:'sawtooth', vol:0.18, dur:0.22, lp:600});
@@ -1341,12 +1341,23 @@ function songProgress() {
 function startMp3(track, buffer) {
   audio();
   stopMp3();
+  if (actx.state !== 'running') {
+    // One last sync resume attempt — the user-gesture context is still warm
+    // from the click handler that bubbled into here.
+    try { actx.resume(); } catch (_) {}
+  }
+  if (actx.state !== 'running') {
+    // Surface this — silent playback when ctx is suspended is the most common
+    // "play button does nothing" symptom on iOS / Safari.
+    throw new Error('AudioContext not running (state=' + actx.state + ')');
+  }
   const src = actx.createBufferSource();
   src.buffer = buffer;
   src.connect(masterBus);
   // Schedule a small lead time so we have a stable startCtxTime to clock against.
   const startAt = actx.currentTime + 0.08;
-  src.start(startAt);
+  try { src.start(startAt); }
+  catch (err) { throw new Error('source.start failed: ' + (err && err.message ? err.message : err)); }
   mp3State.active = true;
   mp3State.source = src;
   mp3State.buffer = buffer;
@@ -1381,8 +1392,17 @@ function mp3SongPosition() {
 // ── ONE-SHOT SFX (preserve old API) ──
 function playPadHit() {
   if (!actx) return;
-  const root = (curTrack ? curTrack.key : 261.63);
-  const scale = [0, 3, 5, 7, 10, 12, 15];
+  // Pitch the pad-hit chime against the CURRENT chord (when available) rather
+  // than the song's tonic — otherwise the chime clashes whenever the song moves
+  // off the I chord. Intervals are restricted to perfect-only scale degrees
+  // (root / 4th / 5th / octave) so they're consonant against both major and
+  // minor chord qualities without needing per-chord type info.
+  let root = curTrack ? curTrack.key : 261.63;
+  if (curTrack && curTrack.prog && curTrack.prog.length) {
+    const bar = Math.floor(songBeat / 4);
+    root = curTrack.prog[bar % curTrack.prog.length];
+  }
+  const scale = [0, 5, 7, 12, 17, 19, 24];
   const semi = scale[Math.floor(Math.random() * scale.length)];
   const f = root * 2 * Math.pow(2, semi/12);
   L(actx.currentTime, {f, type:'sine', vol:0.3, dur:0.32, lp:6500, dest:fxBus});
@@ -1651,18 +1671,42 @@ function startGame() {
   // call source.start(), playback is silent / nothing happens.
   if (isMp3Track(curTrack)) {
     showMp3Loading(true);
-    audioReady()
+    // 5s timeout guards against AudioContext.resume() never resolving (a known
+    // issue when the user-gesture chain has been broken across async hops).
+    const audioReadyTimeout = new Promise((_, rej) =>
+      setTimeout(() => rej(new Error('audio context did not resume within 5s — try tapping again')), 5000)
+    );
+    Promise.race([audioReady(), audioReadyTimeout])
       .then(() => loadMp3Buffer(curTrack))
-      .then(buf => { showMp3Loading(false); _startGameInner(buf); })
+      .then(buf => {
+        showMp3Loading(false);
+        try {
+          _startGameInner(buf);
+        } catch (err) {
+          showMp3Error('startup failed: ' + (err && err.message ? err.message : err));
+          throw err;
+        }
+      })
       .catch(err => {
         showMp3Loading(false);
-        console.error('[GR] MP3 load failed, falling back to menu:', err);
-        // Drop back to the menu — failed load shouldn't strand the player.
-        showScreen('s-menu');
+        console.error('[GR] MP3 load failed:', err);
+        showMp3Error((err && err.message) ? err.message : 'MP3 load failed');
       });
     return;
   }
   _startGameInner(null);
+}
+
+function showMp3Error(msg) {
+  let el = document.getElementById('mp3-error');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'mp3-error';
+    el.style.cssText = 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:991;max-width:78vw;padding:18px 22px;background:#1a0026;border:2px solid #ff3399;color:#ff99cc;font-family:Courier New,monospace;letter-spacing:0.12em;font-size:0.85rem;line-height:1.5;text-align:center;box-shadow:0 0 24px rgba(255,51,153,0.45);';
+    document.body.appendChild(el);
+  }
+  el.innerHTML = 'TRACK FAILED TO START<br><span style="opacity:0.7;font-size:0.75rem">' + msg + '</span><br><br><span style="opacity:0.55;font-size:0.7rem">Tap to dismiss</span>';
+  el.onclick = () => { el.remove(); showScreen('s-menu'); };
 }
 
 function _startGameInner(mp3Buffer) {
@@ -1827,7 +1871,9 @@ function onBeat() {
   setTimeout(() => {
     if (!running) return;
     // DROP: spawn evenly on the half-beat so density is one signal per eighth note.
-    if (sec && sec.intensity === 3) spawn(sec.intensity);
+    // Pass halfMs so this pad activates an 8th note AFTER the on-beat pad —
+    // proper stagger instead of pairing up on the same beat boundary.
+    if (sec && sec.intensity === 3) spawn(sec.intensity, halfMs);
   }, halfMs);
   scheduleTick();
 }
@@ -1873,12 +1919,11 @@ function tickChord() {
 }
 
 function spawnChord() {
-  // Need at least 3 idle pads for a chord of size 2-3. Skip if not.
+  // Chords are always 2 pads (capped game-wide).
   const idle = pads.map((p, i) => p.state === 'idle' ? i : -1).filter(i => i >= 0);
   if (idle.length < 2) return;
   shuffle(idle);
-  const size = idle.length >= 3 && Math.random() < 0.55 ? 3 : 2;
-  const picks = idle.slice(0, size);
+  const picks = idle.slice(0, 2);
   chord.active = true;
   chord.pads = picks;
   chord.beatsHeld = 0;
@@ -2035,7 +2080,7 @@ function chordOnRelease(idx) {
   }
 }
 
-function spawn(ints) {
+function spawn(ints, activateOffsetMs) {
   if (!running) return;
   // Section gating: no normal pads in INTRO (0), BREAK (4 — handled by chord system), or OUTRO (5).
   if (ints === 0 || ints === 4 || ints === 5) return;
@@ -2047,10 +2092,10 @@ function spawn(ints) {
   // DROP no longer pairs spawns — eighth-note cadence is handled by onBeat.
   const n = Math.min(1, MAX_ACTIVE - active, idle.length);
   shuffle(idle);
-  for (let k = 0; k < n; k++) previewPad(idle[k]);
+  for (let k = 0; k < n; k++) previewPad(idle[k], activateOffsetMs);
 }
 
-function previewPad(idx) {
+function previewPad(idx, activateOffsetMs) {
   const p = pads[idx];
   const danger = !dropping && Math.random() < DANGER_CHANCE;
   const col = danger ? DANGER_COLOR : PAD_COLORS[Math.floor(Math.random() * PAD_COLORS.length)];
@@ -2060,7 +2105,10 @@ function previewPad(idx) {
   const dot = document.createElement('div');
   dot.className = 'pad-dot';
   p.el.appendChild(dot);
-  const delay = Math.max(0, nextBeatAbsTime - Date.now());
+  // activateOffsetMs > 0 pushes the activation past the next beat — used by DROP's
+  // half-beat spawn so it activates 8th-notes-after the on-beat pad rather than
+  // pairing up with it on the same beat boundary.
+  const delay = Math.max(0, (nextBeatAbsTime + (activateOffsetMs || 0)) - Date.now());
   setTimeout(() => {
     if (!running || p.state !== 'pending') return;
     dot.remove();
