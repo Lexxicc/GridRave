@@ -198,6 +198,7 @@
     border: 2px solid var(--primary);
     color: var(--primary);
     padding: 0.6rem 1.8rem;
+    min-height: 44px;
     font-family: 'Courier New', monospace;
     font-size: 0.95rem;
     letter-spacing: 0.12em;
@@ -456,6 +457,70 @@
     box-shadow: 0 0 6px var(--pad-color);
     transition: width 0.08s linear;
   }
+
+  /* ── 5-zone front-menu panel ───────────────────────────── */
+  .gr-menu-panel {
+    background: linear-gradient(180deg, #08000f 0%, #14001e 45%, #14001e 55%, #08000f 100%);
+    border: 6px solid var(--primary);
+    box-shadow: 0 0 6px 2px rgba(255,0,255,0.55), 0 0 28px 4px rgba(255,0,255,0.28),
+                0 0 70px rgba(255,0,255,0.12), inset 0 0 40px rgba(0,0,0,0.45);
+    width: 640px; max-width: 94vw;
+    height: calc(100dvh - 3.2vw); max-height: calc(100dvh - 3.2vw);
+    margin: 1.6vw; overflow-y: auto; scrollbar-width: none;
+    display: flex; flex-direction: column;
+    padding: 1.5vw; gap: 1.5vw; box-sizing: border-box;
+  }
+  .gr-menu-panel::-webkit-scrollbar { display: none; }
+  .gr-logo-zone {
+    flex: 1 1 auto; min-height: calc(240px - 1.5vw);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .gr-tagline-zone {
+    flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px; padding: 8px 16px;
+  }
+  .gr-tagline-line { flex: 1; height: 1px; }
+  .gr-tagline-line.left  { background: linear-gradient(to right, transparent, var(--primary)); }
+  .gr-tagline-line.right { background: linear-gradient(to left,  transparent, var(--primary)); }
+  .gr-tagline-text {
+    font-family: 'Courier New', monospace; font-size: 0.75rem;
+    color: var(--warn); text-transform: uppercase;
+    letter-spacing: 0.35em; white-space: nowrap;
+    text-shadow: 0 0 8px var(--warn);
+  }
+  .gr-menu-btns { flex: 0 0 auto; display: flex; flex-direction: column; }
+  .gr-menu-btn {
+    display: flex; align-items: center; width: 100%;
+    padding: 3vw 24px; min-height: 44px;
+    font-family: 'Courier New', monospace; font-size: 1.05rem;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--primary); background: transparent;
+    border: none; border-bottom: 2px solid rgba(255,0,255,0.18);
+    cursor: pointer; text-align: left;
+    transition: background 0.12s, padding-left 0.12s;
+    touch-action: manipulation;
+    text-shadow: 0 0 6px rgba(255,0,255,0.4);
+  }
+  .gr-menu-btn.accent { color: var(--accent); text-shadow: 0 0 6px rgba(0,238,255,0.4); border-bottom-color: rgba(0,238,255,0.18); }
+  .gr-menu-btn:last-child { border-bottom: none; }
+  .gr-menu-btn:hover, .gr-menu-btn:active { background: rgba(255,0,255,0.08); padding-left: 32px; }
+  .gr-menu-btn.accent:hover, .gr-menu-btn.accent:active { background: rgba(0,238,255,0.08); }
+  .gr-arrow { margin-left: auto; opacity: 0.45; font-style: normal; }
+  .gr-footer-zone {
+    flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px; padding: 0.75vw 16px; opacity: 0.5;
+  }
+  .gr-footer-line { flex: 1; height: 1px; }
+  .gr-footer-line.left  { background: linear-gradient(to right, transparent, rgba(255,255,255,0.5)); }
+  .gr-footer-line.right { background: linear-gradient(to left,  transparent, rgba(255,255,255,0.5)); }
+  .gr-footer-text {
+    font-family: 'Courier New', monospace; font-size: 11px;
+    color: #888; text-transform: uppercase;
+    letter-spacing: 0.3em; white-space: nowrap;
+  }
 </style>
 </head>
 <body>
@@ -465,17 +530,37 @@
 
 <!-- MENU -->
 <div id="s-menu" class="screen active">
-  <div class="text-center mb-1 select-none">
-    <div class="font-bold glow-p tracking-widest" style="font-size:clamp(3rem,16vw,5rem);line-height:1">GRID</div>
-    <div class="font-bold glow-a tracking-widest" style="font-size:clamp(3rem,16vw,5rem);line-height:1">RAVE</div>
-  </div>
-  <div class="text-xs glow-w tracking-widest mb-8 text-center">FEEL THE BEAT · TAP THE GRID</div>
-  <div class="flex flex-col gap-3 items-center w-full max-w-xs">
-    <button class="btn w-full" onclick="startGame()">PLAY</button>
-    <button class="btn btn-a w-full" onclick="showScreen('s-disco')">DISCOGRAPHY</button>
-    <button class="btn w-full" onclick="showScreen('s-how')">HOW TO PLAY</button>
-    <button class="btn btn-a w-full" onclick="showScreen('s-rec')">GAME HISTORY</button>
-    <button class="btn w-full" onclick="showScreen('s-notes')">PATCH NOTES</button>
+  <div class="gr-menu-panel">
+
+    <!-- Zone 1 — Logo -->
+    <div class="gr-logo-zone">
+      <div class="font-bold glow-p tracking-widest select-none" style="font-size:clamp(3rem,16vw,5rem);line-height:1">GRID</div>
+      <div class="font-bold glow-a tracking-widest select-none" style="font-size:clamp(3rem,16vw,5rem);line-height:1">RAVE</div>
+    </div>
+
+    <!-- Zone 2 — Tagline -->
+    <div class="gr-tagline-zone">
+      <div class="gr-tagline-line left"></div>
+      <span class="gr-tagline-text">Feel the Beat · Tap the Grid</span>
+      <div class="gr-tagline-line right"></div>
+    </div>
+
+    <!-- Zone 3 — Buttons -->
+    <div class="gr-menu-btns">
+      <button class="gr-menu-btn" onclick="startGame()">Play <span class="gr-arrow">›</span></button>
+      <button class="gr-menu-btn accent" onclick="showScreen('s-disco')">Discography <span class="gr-arrow">›</span></button>
+      <button class="gr-menu-btn" onclick="showScreen('s-how')">How to Play <span class="gr-arrow">›</span></button>
+      <button class="gr-menu-btn accent" onclick="showScreen('s-rec')">Game History <span class="gr-arrow">›</span></button>
+      <button class="gr-menu-btn" onclick="showScreen('s-notes')">Patch Notes <span class="gr-arrow">›</span></button>
+    </div>
+
+    <!-- Zone 5 — Footer -->
+    <div class="gr-footer-zone">
+      <div class="gr-footer-line left"></div>
+      <span class="gr-footer-text">GridRave · v0.1.17</span>
+      <div class="gr-footer-line right"></div>
+    </div>
+
   </div>
 </div>
 
@@ -523,7 +608,7 @@
   <div class="text-xl font-bold glow-p mb-4 tracking-widest">PATCH NOTES</div>
   <div class="w-full max-w-sm px-1" style="max-height:65vh;overflow-y:auto;">
     <div class="note-item">
-      <div class="note-ver">v0.0.16</div>
+      <div class="note-ver">v0.1.17</div>
       <div class="note-date">2026-05-09</div>
       <div>Workspace audit: baseline .gitignore added; footer version corrected (was stale at v0.0.14).</div>
     </div>
@@ -641,7 +726,7 @@
   </div>
 </div>
 
-<div class="footer">GRIDRAVE v0.0.16 &nbsp;·&nbsp; TACTICON STUDIOS</div>
+<div class="footer">GRIDRAVE v0.1.17 &nbsp;·&nbsp; TACTICON STUDIOS</div>
 
 <script>
 // ── CONFIG ───────────────────────────────────────────────
