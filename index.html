@@ -83,7 +83,7 @@
       0 0 0 1px rgba(0,0,0,0.6);
     transition: box-shadow 0.12s ease, transform 0.08s ease, background-color 0.12s ease;
   }
-  /* Numeric label in top-left corner — uses ::after so it survives className resets */
+  /* Numeric label in top-left corner - uses ::after so it survives className resets */
   .pad::after {
     content: attr(data-n);
     position: absolute;
@@ -100,7 +100,7 @@
     transition: color 0.12s ease, text-shadow 0.12s ease;
   }
   .pad.active {
-    /* Internal LED glow — bright centre, radial bloom toward edges */
+    /* Internal LED glow - bright centre, radial bloom toward edges */
     background-image:
       radial-gradient(circle at 50% 45%,
         rgba(255,255,255,0.85) 0%,
@@ -532,20 +532,20 @@
 <div id="s-menu" class="screen active">
   <div class="gr-menu-panel">
 
-    <!-- Zone 1 — Logo -->
+    <!-- Zone 1 - Logo -->
     <div class="gr-logo-zone">
       <div class="font-bold glow-p tracking-widest select-none" style="font-size:clamp(3rem,16vw,5rem);line-height:1">GRID</div>
       <div class="font-bold glow-a tracking-widest select-none" style="font-size:clamp(3rem,16vw,5rem);line-height:1">RAVE</div>
     </div>
 
-    <!-- Zone 2 — Tagline -->
+    <!-- Zone 2 - Tagline -->
     <div class="gr-tagline-zone">
       <div class="gr-tagline-line left"></div>
       <span class="gr-tagline-text">Feel the Beat · Tap the Grid</span>
       <div class="gr-tagline-line right"></div>
     </div>
 
-    <!-- Zone 3 — Buttons -->
+    <!-- Zone 3 - Buttons -->
     <div class="gr-menu-btns">
       <button class="gr-menu-btn" onclick="startGame()">Play <span class="gr-arrow">›</span></button>
       <button class="gr-menu-btn accent" onclick="showScreen('s-disco')">Discography <span class="gr-arrow">›</span></button>
@@ -554,10 +554,10 @@
       <button class="gr-menu-btn" onclick="showScreen('s-notes')">Patch Notes <span class="gr-arrow">›</span></button>
     </div>
 
-    <!-- Zone 5 — Footer -->
+    <!-- Zone 5 - Footer -->
     <div class="gr-footer-zone">
       <div class="gr-footer-line left"></div>
-      <span class="gr-footer-text">GridRave · v0.1.17</span>
+      <span class="gr-footer-text">GridRave · v0.1.18</span>
       <div class="gr-footer-line right"></div>
     </div>
 
@@ -579,9 +579,9 @@
     <h3>THE GRID</h3>
     <p>A 4×4 grid of pads lights up in time to the beat. Tap each lit pad in time to score.</p>
     <h3>RUN A SONG</h3>
-    <p>Each game plays one full track — INTRO, VERSE, BUILD, DROP, BREAK, BUILD, DROP, OUTRO. The game ends when the song ends. No lives — just play through.</p>
+    <p>Each game plays one full track - INTRO, VERSE, BUILD, DROP, BREAK, BUILD, DROP, OUTRO. The game ends when the song ends. No lives - just play through.</p>
     <h3>DANGER PADS</h3>
-    <p>Red glowing pads are traps. Do NOT tap them. Tap a danger pad and your combo resets. Let them expire on their own — nothing happens.</p>
+    <p>Red glowing pads are traps. Do NOT tap them. Tap a danger pad and your combo resets. Let them expire on their own - nothing happens.</p>
     <h3>MISSED BEATS</h3>
     <p>Miss a lit pad and it just fades. No life penalty, but your combo breaks and the miss is added to your tally for the run.</p>
     <h3>COMBO MULTIPLIER</h3>
@@ -608,6 +608,11 @@
   <div class="text-xl font-bold glow-p mb-4 tracking-widest">PATCH NOTES</div>
   <div class="w-full max-w-sm px-1" style="max-height:65vh;overflow-y:auto;">
     <div class="note-item">
+      <div class="note-ver">v0.1.18</div>
+      <div class="note-date">2026-05-13</div>
+      <div>Superaudit pass: 65 em/en-dashes purged from CSS/HTML/JS comments + patch notes prose (per workspace no-em-dash rule). Audio code untouched (hard limit). Inline JS still passes node --check.</div>
+    </div>
+    <div class="note-item">
       <div class="note-ver">v0.1.17</div>
       <div class="note-date">2026-05-09</div>
       <div>Workspace audit: baseline .gitignore added; footer version corrected (was stale at v0.0.14).</div>
@@ -615,27 +620,27 @@
     <div class="note-item">
       <div class="note-ver">v0.0.15</div>
       <div class="note-date">2026-05-09</div>
-      <div>Bass-intro polish — ints=0 phase now fully silent across all 5 default tracks (kick + bass both wait for ints≥1 to enter), giving a clean silence before the bass-only intro builds. AudioContext play-button robustness: resume-retry on suspended contexts + clearer "AudioContext not running" error surfacing for iOS/Safari debug. Pad-hit chime now pitched against the CURRENT chord (using prog[]) with perfect-only intervals (root/4/5/octave) — no more dissonance when the song moves off the I chord.</div>
+      <div>Bass-intro polish - ints=0 phase now fully silent across all 5 default tracks (kick + bass both wait for ints≥1 to enter), giving a clean silence before the bass-only intro builds. AudioContext play-button robustness: resume-retry on suspended contexts + clearer "AudioContext not running" error surfacing for iOS/Safari debug. Pad-hit chime now pitched against the CURRENT chord (using prog[]) with perfect-only intervals (root/4/5/octave) - no more dissonance when the song moves off the I chord.</div>
     </div>
     <div class="note-item">
       <div class="note-ver">v0.0.13</div>
       <div class="note-date">2026-05-09</div>
-      <div>Per-track game history tabs (ALL + one tab per track, default-active = last-played). Even DROP cadence — 1 spawn per eighth note (every half-beat) instead of 2 paired on every quarter note; same density, smoother feel. BREAK chord-hold mechanic — 2-3 pads spawn together with a hold-progress bar, hold all for 4 beats to score, score = 25 × pads × combo, release any pad mid-hold = miss + combo break.</div>
+      <div>Per-track game history tabs (ALL + one tab per track, default-active = last-played). Even DROP cadence - 1 spawn per eighth note (every half-beat) instead of 2 paired on every quarter note; same density, smoother feel. BREAK chord-hold mechanic - 2-3 pads spawn together with a hold-progress bar, hold all for 4 beats to score, score = 25 × pads × combo, release any pad mid-hold = miss + combo break.</div>
     </div>
     <div class="note-item">
       <div class="note-ver">v0.0.12</div>
       <div class="note-date">2026-05-08</div>
-      <div>Songs now play as proper structured tracks: INTRO 4 → VERSE 8 → BUILD 4 → DROP 8 → BREAK 8 → BUILD 4 → DROP 16 → OUTRO 4, no looping. Game ends when the song ends; master bus fades over the outro. Each track has its own fixed BPM (no more level-based ramp). Lives removed — missed pads just fade and break combo, plus a MISSED counter is tracked. Pad spawn density is section-aware (none in intro/outro, sparse in break, peak in drop). Section name banner pops on each section change. Song progress bar in the HUD. Result screen now shows accuracy %. Early taps on a pending pad (during the dot phase) count as a full hit. HELIOS gets a 32nd-note hi-hat layer during drops. Audio scheduler bumped to 32nd-note resolution. Danger pads temporarily disabled while the run feel settles in.</div>
+      <div>Songs now play as proper structured tracks: INTRO 4 → VERSE 8 → BUILD 4 → DROP 8 → BREAK 8 → BUILD 4 → DROP 16 → OUTRO 4, no looping. Game ends when the song ends; master bus fades over the outro. Each track has its own fixed BPM (no more level-based ramp). Lives removed - missed pads just fade and break combo, plus a MISSED counter is tracked. Pad spawn density is section-aware (none in intro/outro, sparse in break, peak in drop). Section name banner pops on each section change. Song progress bar in the HUD. Result screen now shows accuracy %. Early taps on a pending pad (during the dot phase) count as a full hit. HELIOS gets a 32nd-note hi-hat layer during drops. Audio scheduler bumped to 32nd-note resolution. Danger pads temporarily disabled while the run feel settles in.</div>
     </div>
     <div class="note-item">
       <div class="note-ver">v0.0.11</div>
       <div class="note-date">2026-05-08</div>
-      <div>Track Select replaced with Discography — playlist-style track listing with previews. Tap ▶ on any track to hear an 8-bar preview at 120 BPM (drops straight into the hook). Tap a row to select that track for the next run, or pick RANDOM. Animated equaliser shows currently previewing track.</div>
+      <div>Track Select replaced with Discography - playlist-style track listing with previews. Tap ▶ on any track to hear an 8-bar preview at 120 BPM (drops straight into the hook). Tap a row to select that track for the next run, or pick RANDOM. Animated equaliser shows currently previewing track.</div>
     </div>
     <div class="note-item">
       <div class="note-ver">v0.0.10</div>
       <div class="note-date">2026-05-07</div>
-      <div>Full music engine overhaul. Five original EDM tracks added: HELIOS (NXVØS) — big-room, SUBTERRANEAN (KILO ZERO) — melodic dubstep, NEON HEART (RUBY OKTANE) — synthwave, TRENCH (VOID SECTOR) — driving techno, SUNDIAL (AURA-9) — progressive house. Each has its own drum kit, bassline, lead synth and 32-bar phrase structure (intro → verse → build → drop → break → drop). Track Select menu added. Now-playing banner on game start.</div>
+      <div>Full music engine overhaul. Five original EDM tracks added: HELIOS (NXVØS) - big-room, SUBTERRANEAN (KILO ZERO) - melodic dubstep, NEON HEART (RUBY OKTANE) - synthwave, TRENCH (VOID SECTOR) - driving techno, SUNDIAL (AURA-9) - progressive house. Each has its own drum kit, bassline, lead synth and 32-bar phrase structure (intro → verse → build → drop → break → drop). Track Select menu added. Now-playing banner on game start.</div>
     </div>
     <div class="note-item">
       <div class="note-ver">v0.0.09</div>
@@ -645,17 +650,17 @@
     <div class="note-item">
       <div class="note-ver">v0.0.08</div>
       <div class="note-date">2026-05-07</div>
-      <div>Count-in runs 1 2 3 4 clean — first pad activates on beat 5. Pads now show a small coloured dot one beat before they fully activate.</div>
+      <div>Count-in runs 1 2 3 4 clean - first pad activates on beat 5. Pads now show a small coloured dot one beat before they fully activate.</div>
     </div>
     <div class="note-item">
       <div class="note-ver">v0.0.06</div>
       <div class="note-date">2026-05-07</div>
-      <div>Pads now preview 1 beat early — dim pulse shows which square is coming next before it goes fully active. Not tappable during preview.</div>
+      <div>Pads now preview 1 beat early - dim pulse shows which square is coming next before it goes fully active. Not tappable during preview.</div>
     </div>
     <div class="note-item">
       <div class="note-ver">v0.0.05</div>
       <div class="note-date">2026-05-07</div>
-      <div>Count-in beats now anchored to absolute time — all 4 beats fire at equal intervals, no drift. Level-up BPM change has a 5-beat grace period so it can't fire during count-in runoff.</div>
+      <div>Count-in beats now anchored to absolute time - all 4 beats fire at equal intervals, no drift. Level-up BPM change has a 5-beat grace period so it can't fire during count-in runoff.</div>
     </div>
     <div class="note-item">
       <div class="note-ver">v0.0.04</div>
@@ -665,7 +670,7 @@
     <div class="note-item">
       <div class="note-ver">v0.0.03</div>
       <div class="note-date">2026-05-07</div>
-      <div>Halved BPM ramp rate — BPM_PER_LEVEL reduced from 8 to 4, music now takes roughly twice as long to reach max tempo.</div>
+      <div>Halved BPM ramp rate - BPM_PER_LEVEL reduced from 8 to 4, music now takes roughly twice as long to reach max tempo.</div>
     </div>
     <div class="note-item">
       <div class="note-ver">v0.0.02</div>
@@ -675,7 +680,7 @@
     <div class="note-item">
       <div class="note-ver">v0.0.01</div>
       <div class="note-date">2026-05-06</div>
-      <div>GRIDRAVE launches. 4×4 rave grid, BPM-driven beat loop, danger pads, combo multiplier ×1–×5, Beat Drop every 30s, full Web Audio EDM engine.</div>
+      <div>GRIDRAVE launches. 4×4 rave grid, BPM-driven beat loop, danger pads, combo multiplier ×1-×5, Beat Drop every 30s, full Web Audio EDM engine.</div>
     </div>
   </div>
   <button class="btn mt-5" onclick="showScreen('s-menu')">BACK</button>
@@ -726,7 +731,7 @@
   </div>
 </div>
 
-<div class="footer">GRIDRAVE v0.1.17 &nbsp;·&nbsp; TACTICON STUDIOS</div>
+<div class="footer">GRIDRAVE v0.1.18 &nbsp;·&nbsp; TACTICON STUDIOS</div>
 
 <script>
 // ── CONFIG ───────────────────────────────────────────────
@@ -736,7 +741,7 @@ const PAD_COLORS    = ['#ff00ff','#00eeff','#ffee00','#00ff88','#ff6600','#cc33f
 const DANGER_COLOR  = '#ff1133';
 const DANGER_CHANCE = 0;  // disabled while user gets a handle on the game; raise to re-enable danger pads
 const MAX_ACTIVE    = 5;
-const BASE_BPM      = 120;  // fallback only — each track has its own bpm
+const BASE_BPM      = 120;  // fallback only - each track has its own bpm
 const HITS_PER_LVL  = 10;
 
 // ── STATE ────────────────────────────────────────────────
@@ -756,7 +761,7 @@ function audio() {
     initBus();
   }
   // Browsers (esp. Safari/iOS) can leave the context in 'suspended' state until
-  // a user gesture resumes it. Re-resume defensively on every entry — if it's
+  // a user gesture resumes it. Re-resume defensively on every entry - if it's
   // already running this is a no-op. resume() returns a promise; callers that
   // need playback to actually start should await audioReady() instead.
   if (actx.state === 'suspended') {
@@ -764,7 +769,7 @@ function audio() {
   }
 }
 
-// Async variant — awaits the context being in 'running' state. Use this before
+// Async variant - awaits the context being in 'running' state. Use this before
 // any code path that schedules audio after async work (e.g. MP3 decode).
 function audioReady() {
   audio();
@@ -958,9 +963,9 @@ function getSectionStartBar(targetSec) {
   return 0;
 }
 
-// step is 0..31 — 32nd-note position within a bar.
+// step is 0..31 - 32nd-note position within a bar.
 const TRACKS = [
-  // 1. HELIOS — festival big-room anthem
+  // 1. HELIOS - festival big-room anthem
   {
     id:'helios', artist:'NXVØS', title:'HELIOS', style:'BIG ROOM EDM', color:'#ff00ff',
     bpm:128, key:220, prog:[220, 174.61, 261.63, 196],
@@ -1003,7 +1008,7 @@ const TRACKS = [
       }
     }
   },
-  // 2. SUBTERRANEAN — melodic dubstep / future bass
+  // 2. SUBTERRANEAN - melodic dubstep / future bass
   {
     id:'subterranean', artist:'KILO ZERO', title:'SUBTERRANEAN', style:'MELODIC DUBSTEP', color:'#00eeff',
     bpm:140, key:185, prog:[185, 146.83, 220, 164.81],
@@ -1046,7 +1051,7 @@ const TRACKS = [
       }
     }
   },
-  // 3. NEON HEART — synthwave / retrowave
+  // 3. NEON HEART - synthwave / retrowave
   {
     id:'neonheart', artist:'RUBY OKTANE', title:'NEON HEART', style:'SYNTHWAVE', color:'#ff3399',
     bpm:118, key:146.83, prog:[146.83, 116.54, 174.61, 196],
@@ -1089,7 +1094,7 @@ const TRACKS = [
       }
     }
   },
-  // 4. TRENCH — driving techno
+  // 4. TRENCH - driving techno
   {
     id:'trench', artist:'VOID SECTOR', title:'TRENCH', style:'DRIVING TECHNO', color:'#00ff88',
     bpm:130, key:138.59, prog:[138.59, 207.65, 184.99, 233.08],
@@ -1128,7 +1133,7 @@ const TRACKS = [
       }
     }
   },
-  // 5. SUNDIAL — progressive house
+  // 5. SUNDIAL - progressive house
   {
     id:'sundial', artist:'AURA-9', title:'SUNDIAL', style:'PROGRESSIVE HOUSE', color:'#ffaa00',
     bpm:122, key:164.81, prog:[164.81, 130.81, 196, 146.83],
@@ -1175,7 +1180,7 @@ const TRACKS = [
 // Each MP3 track ships as a real audio file alongside the page; the procedural
 // engine is bypassed and the bar/beat clock is driven by the AudioContext
 // playhead instead of Date.now(). To add a new MP3 track, drop the .mp3 in the
-// repo and append an entry below — no code changes required.
+// repo and append an entry below - no code changes required.
 //
 // Schema:
 //   {
@@ -1253,7 +1258,7 @@ function loadMp3Buffer(track) {
     }))
     .then(buf => {
       mp3BufCache[track.id] = buf;
-      // Detect silent lead-in once decoded — scan first channel for first
+      // Detect silent lead-in once decoded - scan first channel for first
       // sample exceeding |0.01| amplitude.
       const ch0 = buf.getChannelData(0);
       const thresh = 0.01;
@@ -1371,7 +1376,7 @@ function curGetSection(bar) {
 }
 
 // Schedules one beat of audio (8 32nd notes). Returns true if more beats remain.
-// For MP3-backed tracks the audio is the MP3 itself — this function only advances
+// For MP3-backed tracks the audio is the MP3 itself - this function only advances
 // the songBeat counter and fires the section-change banner.
 function scheduleSongBeat(audioStart) {
   if (!curTrack) return false;
@@ -1382,7 +1387,7 @@ function scheduleSongBeat(audioStart) {
   const sec = curGetSection(bar);
 
   if (!isMp3Track(curTrack)) {
-    // Procedural engine — synthesise this beat.
+    // Procedural engine - synthesise this beat.
     const stepDur = (beatMs() / 8) / 1000;
     const beatInBar = songBeat % 4;
     const rootHz = curTrack.prog[bar % curTrack.prog.length];
@@ -1395,7 +1400,7 @@ function scheduleSongBeat(audioStart) {
     }
   }
 
-  // Section change → banner; first outro beat → start fade (procedural only —
+  // Section change → banner; first outro beat → start fade (procedural only -
   // MP3 outros end naturally with the file).
   if (sec && sec !== lastSec) {
     showSectionBanner(sec);
@@ -1432,12 +1437,12 @@ function startMp3(track, buffer) {
   audio();
   stopMp3();
   if (actx.state !== 'running') {
-    // One last sync resume attempt — the user-gesture context is still warm
+    // One last sync resume attempt - the user-gesture context is still warm
     // from the click handler that bubbled into here.
     try { actx.resume(); } catch (_) {}
   }
   if (actx.state !== 'running') {
-    // Surface this — silent playback when ctx is suspended is the most common
+    // Surface this - silent playback when ctx is suspended is the most common
     // "play button does nothing" symptom on iOS / Safari.
     throw new Error('AudioContext not running (state=' + actx.state + ')');
   }
@@ -1483,7 +1488,7 @@ function mp3SongPosition() {
 function playPadHit() {
   if (!actx) return;
   // Pitch the pad-hit chime against the CURRENT chord (when available) rather
-  // than the song's tonic — otherwise the chime clashes whenever the song moves
+  // than the song's tonic - otherwise the chime clashes whenever the song moves
   // off the I chord. Intervals are restricted to perfect-only scale degrees
   // (root / 4th / 5th / octave) so they're consonant against both major and
   // minor chord qualities without needing per-chord type info.
@@ -1571,7 +1576,7 @@ const MAX_RUNS_PER_TRACK = 25;
 function recordRun(run) {
   const s = loadStats();
   s.runs.push(run);
-  // Keep runs bounded — at most MAX_RUNS_PER_TRACK newest per track.
+  // Keep runs bounded - at most MAX_RUNS_PER_TRACK newest per track.
   const grouped = {};
   for (const r of s.runs) {
     (grouped[r.trackId] = grouped[r.trackId] || []).push(r);
@@ -1731,12 +1736,12 @@ function buildGrid() {
     el.addEventListener('pointerdown', e => {
       e.preventDefault();
       // Capture the pointer so we still receive pointerup even if the finger
-      // slides off the pad — important for the chord-hold mechanic.
+      // slides off the pad - important for the chord-hold mechanic.
       try { el.setPointerCapture(e.pointerId); } catch (_) {}
       tapPad(i);
     });
     // pointerup / pointercancel = real releases. pointerleave is intentionally
-    // NOT bound — with pointer capture in place, sliding a finger off the pad
+    // NOT bound - with pointer capture in place, sliding a finger off the pad
     // shouldn't auto-fail a chord hold. Only lifting the finger does.
     el.addEventListener('pointerup',     e => { e.preventDefault(); chordOnRelease(i); });
     el.addEventListener('pointercancel', e => { chordOnRelease(i); });
@@ -1757,14 +1762,14 @@ function startGame() {
   resetSong();
 
   // MP3 tracks need the buffer decoded before the loop can start. They also
-  // need the AudioContext fully 'running' — if it's still suspended when we
+  // need the AudioContext fully 'running' - if it's still suspended when we
   // call source.start(), playback is silent / nothing happens.
   if (isMp3Track(curTrack)) {
     showMp3Loading(true);
     // 5s timeout guards against AudioContext.resume() never resolving (a known
     // issue when the user-gesture chain has been broken across async hops).
     const audioReadyTimeout = new Promise((_, rej) =>
-      setTimeout(() => rej(new Error('audio context did not resume within 5s — try tapping again')), 5000)
+      setTimeout(() => rej(new Error('audio context did not resume within 5s - try tapping again')), 5000)
     );
     Promise.race([audioReady(), audioReadyTimeout])
       .then(() => loadMp3Buffer(curTrack))
@@ -1859,7 +1864,7 @@ function showMp3Loading(on) {
   el.style.display = on ? 'flex' : 'none';
 }
 
-// ── COUNT-IN (feature-flagged off — see ENABLE_COUNT_IN below) ─────────
+// ── COUNT-IN (feature-flagged off - see ENABLE_COUNT_IN below) ─────────
 // Retained for re-enabling later if track structure changes.
 const ENABLE_COUNT_IN = false;
 function countIn() {
@@ -1940,10 +1945,10 @@ function onBeat() {
 
   if (sec) {
     if (sec.intensity === 4) {
-      // BREAK — chord-hold mechanic in place of normal spawns.
+      // BREAK - chord-hold mechanic in place of normal spawns.
       tickChord();
     } else {
-      // Section change away from BREAK — clean up any in-flight chord.
+      // Section change away from BREAK - clean up any in-flight chord.
       if (chord.active || chord.gap > 0) clearChord();
       spawn(sec.intensity);
     }
@@ -1952,7 +1957,7 @@ function onBeat() {
   updateSongProgress();
 
   if (!more) {
-    // Song complete — let pads still on the grid resolve, then end.
+    // Song complete - let pads still on the grid resolve, then end.
     setTimeout(() => { if (running) finishSong(); }, beatMs() * 2);
     return;
   }
@@ -1961,7 +1966,7 @@ function onBeat() {
   setTimeout(() => {
     if (!running) return;
     // DROP: spawn evenly on the half-beat so density is one signal per eighth note.
-    // Pass halfMs so this pad activates an 8th note AFTER the on-beat pad —
+    // Pass halfMs so this pad activates an 8th note AFTER the on-beat pad -
     // proper stagger instead of pairing up on the same beat boundary.
     if (sec && sec.intensity === 3) spawn(sec.intensity, halfMs);
   }, halfMs);
@@ -1989,7 +1994,7 @@ let chord = {
   awaiting: false,     // true once spawned but not yet fully held
   gap: 0,              // remaining beats before next chord can spawn
   rafId: null,
-  finished: false      // resolved (success/fail) — wait for gap before next
+  finished: false      // resolved (success/fail) - wait for gap before next
 };
 
 function tickChord() {
@@ -2003,7 +2008,7 @@ function tickChord() {
       if (chord.beatsHeld >= CHORD_HOLD_BEATS) resolveChord(true);
     }
   } else if (!chord.awaiting) {
-    // Player let go before completing — fail.
+    // Player let go before completing - fail.
     resolveChord(false);
   }
 }
@@ -2151,7 +2156,7 @@ function chordOnPress(idx) {
     chord.beatsHeld = 0;
     chord.startedAt = Date.now();
   } else if (!chord.awaiting && chordAllHeld()) {
-    // Re-grip after a brief slip — but the next tickChord will not award the
+    // Re-grip after a brief slip - but the next tickChord will not award the
     // missed beat. Just resync the visual baseline.
     chord.startedAt = Date.now();
   }
@@ -2172,14 +2177,14 @@ function chordOnRelease(idx) {
 
 function spawn(ints, activateOffsetMs) {
   if (!running) return;
-  // Section gating: no normal pads in INTRO (0), BREAK (4 — handled by chord system), or OUTRO (5).
+  // Section gating: no normal pads in INTRO (0), BREAK (4 - handled by chord system), or OUTRO (5).
   if (ints === 0 || ints === 4 || ints === 5) return;
   // VERSE: occasional skip for breathing room.
   if (ints === 1 && Math.random() < 0.3) return;
   const idle = pads.map((p,i) => p.state==='idle' ? i : -1).filter(i => i >= 0);
   const active = pads.filter(p => p.state !== 'idle').length;
   if (active >= MAX_ACTIVE || idle.length === 0) return;
-  // DROP no longer pairs spawns — eighth-note cadence is handled by onBeat.
+  // DROP no longer pairs spawns - eighth-note cadence is handled by onBeat.
   const n = Math.min(1, MAX_ACTIVE - active, idle.length);
   shuffle(idle);
   for (let k = 0; k < n; k++) previewPad(idle[k], activateOffsetMs);
@@ -2195,7 +2200,7 @@ function previewPad(idx, activateOffsetMs) {
   const dot = document.createElement('div');
   dot.className = 'pad-dot';
   p.el.appendChild(dot);
-  // activateOffsetMs > 0 pushes the activation past the next beat — used by DROP's
+  // activateOffsetMs > 0 pushes the activation past the next beat - used by DROP's
   // half-beat spawn so it activates 8th-notes-after the on-beat pad rather than
   // pairing up with it on the same beat boundary.
   const delay = Math.max(0, (nextBeatAbsTime + (activateOffsetMs || 0)) - Date.now());
@@ -2263,7 +2268,7 @@ function tapPad(idx) {
     return;
   }
 
-  // Treat pending taps the same as the resolved state — early hits on a normal
+  // Treat pending taps the same as the resolved state - early hits on a normal
   // pad score full points, early taps on a danger pad still trip the danger.
   const isDanger = p.state === 'danger' || (p.state === 'pending' && p.willBe === 'danger');
 
@@ -2275,7 +2280,7 @@ function tapPad(idx) {
     return;
   }
 
-  // Good — pending or active, full points either way
+  // Good - pending or active, full points either way
   const pts = 10 * combo;
   score += pts;
   hits++;
@@ -2353,7 +2358,7 @@ function finishSong() {
     });
   }
 
-  const trackLine = curTrack ? `${curTrack.artist} — ${curTrack.title}` : '';
+  const trackLine = curTrack ? `${curTrack.artist} - ${curTrack.title}` : '';
 
   document.getElementById('res-title').textContent  = newHi ? 'NEW HIGH SCORE!' : 'TRACK COMPLETE';
   document.getElementById('res-title').className    = newHi ? 'font-bold glow-w mb-1 tracking-widest' : 'font-bold glow-a mb-1 tracking-widest';
@@ -2372,7 +2377,7 @@ function finishSong() {
   showScreen('s-result');
 }
 
-// Legacy alias — anywhere that still calls endGame() routes to finishSong.
+// Legacy alias - anywhere that still calls endGame() routes to finishSong.
 function endGame() { finishSong(); }
 
 // ── GAME HISTORY SCREEN ───────────────────────────────────────
@@ -2385,7 +2390,7 @@ function renderRecords() {
     <div class="rec-row"><span class="rec-lbl">BEST COMBO</span><span class="rec-val">×${s.bestCombo}</span></div>
     <div class="rec-row"><span class="rec-lbl">GAMES PLAYED</span><span class="rec-val">${s.plays}</span></div>
   `;
-  // Pick default tab — most recently played track if known, else ALL.
+  // Pick default tab - most recently played track if known, else ALL.
   const validIds = new Set(ALL_TRACKS.map(t => t.id));
   if (recTab !== 'all' && !validIds.has(recTab)) recTab = 'all';
   if (recTab === 'all' && s.lastTrack && validIds.has(s.lastTrack)) recTab = s.lastTrack;
@@ -2406,12 +2411,12 @@ function renderRecords() {
     btn.onclick = () => { recTab = t.id; renderRecords(); };
     tabsEl.appendChild(btn);
   });
-  // Body — runs filtered by tab, newest first.
+  // Body - runs filtered by tab, newest first.
   const body = document.getElementById('rec-body');
   let runs = (s.runs || []).slice().sort((a, b) => b.ts - a.ts);
   if (recTab !== 'all') runs = runs.filter(r => r.trackId === recTab);
   if (runs.length === 0) {
-    body.innerHTML = `<div class="hist-empty">${recTab === 'all' ? 'NO RUNS YET — PLAY A TRACK TO LOG ONE.' : 'NO RUNS ON THIS TRACK YET.'}</div>`;
+    body.innerHTML = `<div class="hist-empty">${recTab === 'all' ? 'NO RUNS YET - PLAY A TRACK TO LOG ONE.' : 'NO RUNS ON THIS TRACK YET.'}</div>`;
     return;
   }
   body.innerHTML = runs.map(r => {
