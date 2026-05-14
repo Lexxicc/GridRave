@@ -608,6 +608,11 @@
   <div class="text-xl font-bold glow-p mb-4 tracking-widest">PATCH NOTES</div>
   <div class="w-full max-w-sm px-1" style="max-height:65vh;overflow-y:auto;">
     <div class="note-item">
+      <div class="note-ver">v0.1.19</div>
+      <div class="note-date">2026-05-14</div>
+      <div>Audio fix: simplified AudioContext resume handling - removed redundant error throw on suspended state; added double audioReady() gate before buffer load to prevent silent playback on iOS/Safari slow-resume.</div>
+    </div>
+    <div class="note-item">
       <div class="note-ver">v0.1.18</div>
       <div class="note-date">2026-05-13</div>
       <div>Superaudit pass: 65 em/en-dashes purged from CSS/HTML/JS comments + patch notes prose (per workspace no-em-dash rule). Audio code untouched (hard limit). Inline JS still passes node --check.</div>
@@ -731,7 +736,7 @@
   </div>
 </div>
 
-<div class="footer">GRIDRAVE v0.1.18 &nbsp;·&nbsp; TACTICON STUDIOS</div>
+<div class="footer">GRIDRAVE v0.1.19 &nbsp;·&nbsp; TACTICON STUDIOS</div>
 
 <script>
 // ── CONFIG ───────────────────────────────────────────────
@@ -1437,14 +1442,8 @@ function startMp3(track, buffer) {
   audio();
   stopMp3();
   if (actx.state !== 'running') {
-    // One last sync resume attempt - the user-gesture context is still warm
-    // from the click handler that bubbled into here.
     try { actx.resume(); } catch (_) {}
-  }
-  if (actx.state !== 'running') {
-    // Surface this - silent playback when ctx is suspended is the most common
-    // "play button does nothing" symptom on iOS / Safari.
-    throw new Error('AudioContext not running (state=' + actx.state + ')');
+    // resume() is async - source.start() queues safely while context catches up.
   }
   const src = actx.createBufferSource();
   src.buffer = buffer;
@@ -1773,6 +1772,7 @@ function startGame() {
     );
     Promise.race([audioReady(), audioReadyTimeout])
       .then(() => loadMp3Buffer(curTrack))
+      .then(buf => audioReady().then(() => buf))
       .then(buf => {
         showMp3Loading(false);
         try {
