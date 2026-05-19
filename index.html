@@ -557,7 +557,7 @@
     <!-- Zone 5 - Footer -->
     <div class="gr-footer-zone">
       <div class="gr-footer-line left"></div>
-      <span class="gr-footer-text">GridRave · v0.1.18</span>
+      <span class="gr-footer-text">GridRave · v0.1.20</span>
       <div class="gr-footer-line right"></div>
     </div>
 
@@ -607,6 +607,11 @@
 <div id="s-notes" class="screen">
   <div class="text-xl font-bold glow-p mb-4 tracking-widest">PATCH NOTES</div>
   <div class="w-full max-w-sm px-1" style="max-height:65vh;overflow-y:auto;">
+    <div class="note-item">
+      <div class="note-ver">v0.1.20</div>
+      <div class="note-date">2026-05-20</div>
+      <div>super;audit: stripped 2 console.error calls from MP3 audio error handlers. No gameplay changes.</div>
+    </div>
     <div class="note-item">
       <div class="note-ver">v0.1.19</div>
       <div class="note-date">2026-05-14</div>
@@ -1276,7 +1281,6 @@ function loadMp3Buffer(track) {
       return buf;
     })
     .catch(err => {
-      console.error('[GR] MP3 load failed:', err);
       delete mp3LoadingPromises[track.id];
       throw err;
     });
@@ -1784,7 +1788,6 @@ function startGame() {
       })
       .catch(err => {
         showMp3Loading(false);
-        console.error('[GR] MP3 load failed:', err);
         showMp3Error((err && err.message) ? err.message : 'MP3 load failed');
       });
     return;
